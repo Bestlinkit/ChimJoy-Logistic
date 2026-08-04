@@ -107,7 +107,7 @@ export default function AboutPage() {
       {/* ====================================================
           SECTION 1: HERO SECTION
           ==================================================== */}
-      <section className="relative min-h-[580px] h-[75vh] w-full bg-[#0B192C] text-white flex flex-col justify-between overflow-hidden pt-28">
+      <section className="relative min-h-[540px] lg:h-[75vh] w-full bg-[#0B192C] text-white flex flex-col justify-between overflow-hidden pt-32 sm:pt-36 pb-8">
         {/* Hero Background — Real fleet photo */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           <img
@@ -120,7 +120,7 @@ export default function AboutPage() {
         </div>
 
         {/* Hero Content Container */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 w-full my-auto py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 w-full my-auto py-4 sm:py-8">
           <motion.div
             initial={{ opacity: 0, y: 35 }}
             animate={{ opacity: 1, y: 0 }}
@@ -128,7 +128,7 @@ export default function AboutPage() {
             className="max-w-3xl space-y-4"
           >
             {/* Eyebrow */}
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 text-xs font-black text-[#9BC800] uppercase tracking-wider">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 border border-white/20 text-[11px] sm:text-xs font-black text-[#9BC800] uppercase tracking-wider">
               <span className="w-2 h-2 rounded-full bg-[#9BC800] animate-pulse" />
               <span>ABOUT CHIMJOY</span>
             </div>
@@ -149,19 +149,19 @@ export default function AboutPage() {
             </div>
 
             {/* Buttons */}
-            <div className="flex flex-wrap items-center gap-4 pt-2">
+            <div className="flex flex-wrap items-center gap-3 pt-2">
               <Link href="/book">
                 <LuxuryButton
                   variant="lemon"
-                  size="xl"
-                  icon={<ArrowRight className="w-5 h-5" />}
+                  size="lg"
+                  icon={<ArrowRight className="w-4 h-4" />}
                   className="hover:shadow-[0_0_25px_rgba(155,200,0,0.6)]"
                 >
                   Book a Ride
                 </LuxuryButton>
               </Link>
               <Link href="/contact">
-                <LuxuryButton variant="outline" size="xl" icon={<Phone className="w-4 h-4 text-[#9BC800]" />}>
+                <LuxuryButton variant="outline" size="lg" icon={<Phone className="w-4 h-4 text-[#9BC800]" />}>
                   Contact Us
                 </LuxuryButton>
               </Link>
@@ -170,22 +170,22 @@ export default function AboutPage() {
         </div>
 
         {/* Trust Badges Bar */}
-        <div className="relative z-20 w-full bg-[#0B192C]/90 backdrop-blur-xl border-t border-white/10 py-3.5">
+        <div className="relative z-20 w-full bg-[#0B192C]/90 backdrop-blur-xl border-t border-white/10 py-3">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs font-black uppercase tracking-wider text-white">
-              <div className="flex items-center justify-center gap-2 p-2">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 text-[11px] sm:text-xs font-black uppercase tracking-wider text-white">
+              <div className="flex items-center justify-center gap-2 p-1.5">
                 <CheckCircle2 className="w-4 h-4 text-[#9BC800] shrink-0" />
                 <span>Professional Drivers</span>
               </div>
-              <div className="flex items-center justify-center gap-2 p-2">
+              <div className="flex items-center justify-center gap-2 p-1.5">
                 <CheckCircle2 className="w-4 h-4 text-[#9BC800] shrink-0" />
                 <span>Clean Vehicles</span>
               </div>
-              <div className="flex items-center justify-center gap-2 p-2">
+              <div className="flex items-center justify-center gap-2 p-1.5">
                 <CheckCircle2 className="w-4 h-4 text-[#9BC800] shrink-0" />
                 <span>Airport Pickup</span>
               </div>
-              <div className="flex items-center justify-center gap-2 p-2">
+              <div className="flex items-center justify-center gap-2 p-1.5">
                 <CheckCircle2 className="w-4 h-4 text-[#9BC800] shrink-0" />
                 <span>Corporate Transport</span>
               </div>
@@ -197,28 +197,28 @@ export default function AboutPage() {
       {/* ====================================================
           SECTION 2: WHO WE ARE
           ==================================================== */}
-      <section className="py-12 bg-[#F4F6F9] text-[#0E1726] relative">
+      <section className="py-10 sm:py-12 bg-[#F4F6F9] text-[#0E1726] relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
-            initial={{ opacity: 0, y: 45 }}
+            initial={{ opacity: 0, y: 35 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, margin: '-60px' }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center"
+            className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center"
           >
             {/* Left Side — Transparent Land Cruiser cutout */}
             <div className="lg:col-span-6 flex items-center justify-center">
               <motion.div
-                whileHover={{ scale: 1.03 }}
-                className="relative h-[440px] w-full flex flex-col items-center justify-end"
+                whileHover={{ scale: 1.02 }}
+                className="relative min-h-[300px] sm:h-[400px] w-full flex flex-col items-center justify-end"
               >
                 <img
                   src="/images/about_suv_who_we_are_new.png"
                   alt="Classic black Toyota Land Cruiser 300 — ChimJoy's executive fleet"
-                  className="w-full h-[85%] object-contain drop-shadow-[0_24px_60px_rgba(11,25,44,0.3)] transition-transform duration-500 hover:scale-105"
+                  className="w-full h-[220px] sm:h-[320px] object-contain drop-shadow-[0_24px_50px_rgba(11,25,44,0.25)] transition-transform duration-500 hover:scale-105"
                 />
-                <div className="absolute bottom-0 left-6 right-6 bg-white/95 backdrop-blur-md p-5 rounded-2xl border border-[#0B192C]/15 shadow-xl">
-                  <h4 className="font-display text-base font-extrabold text-[#0E1726]">
+                <div className="mt-4 sm:mt-0 sm:absolute sm:bottom-0 sm:left-6 sm:right-6 bg-white/95 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-[#0B192C]/15 shadow-lg w-full sm:w-auto">
+                  <h4 className="font-display text-sm sm:text-base font-extrabold text-[#0E1726]">
                     Executive Fleet in Owerri
                   </h4>
                   <p className="text-xs text-[#475569] font-semibold mt-0.5">
@@ -478,12 +478,12 @@ export default function AboutPage() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0B192C] via-[#0B192C]/60 to-transparent" />
 
-                <div className="relative z-10 flex items-center justify-between">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#9BC800] text-[#0B192C] text-xs font-black uppercase">
-                    <MapPin className="w-3.5 h-3.5" />
+                <div className="relative z-10 flex flex-wrap items-center justify-between gap-2">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#9BC800] text-[#0B192C] text-[11px] font-black uppercase shrink-0">
+                    <MapPin className="w-3.5 h-3.5 shrink-0" />
                     <span>South-East Route Hub</span>
                   </div>
-                  <span className="text-xs text-slate-300 font-bold">Owerri HQ Base</span>
+                  <span className="text-[11px] text-slate-300 font-bold">Owerri HQ Base</span>
                 </div>
 
                 <div className="relative z-10 space-y-2 bg-[#0B192C]/90 backdrop-blur-md p-5 rounded-2xl border border-white/20">

@@ -27,7 +27,7 @@ export const LuxuryNavbar = () => {
     { name: 'Ride Booking', href: '/book/ride' },
     { name: 'Car Hire', href: '/book/hire' },
     { name: 'Airport Pickup', href: '/services/airport-transfers' },
-    { name: 'Logistics', href: '/book/ride' },
+    { name: 'Logistics', href: '/book' },
     { name: 'Contact Us', href: '/contact' },
   ];
 
@@ -72,12 +72,12 @@ export const LuxuryNavbar = () => {
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 group py-0.5">
+          <div className="flex items-center justify-between gap-2">
+            <Link href="/" className="flex items-center gap-2 group py-0.5 shrink-0">
               <img
                 src="/images/logo.png"
                 alt="ChimJoy Logistics Services Ltd"
-                className="h-11 sm:h-13 w-auto object-contain filter drop-shadow-sm group-hover:scale-105 transition-transform"
+                className="h-9 sm:h-12 w-auto object-contain filter drop-shadow-sm group-hover:scale-105 transition-transform"
               />
             </Link>
 
@@ -123,20 +123,24 @@ export const LuxuryNavbar = () => {
               </Link>
             </div>
 
-            {/* Mobile Menu Toggle */}
-            <div className="flex lg:hidden items-center gap-2">
-              <Link href="/book/ride">
+            {/* Mobile Header Action Toggle */}
+            <div className="flex lg:hidden items-center gap-1.5 sm:gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => handleMobileNavigate('/book/ride')}
+                className="hidden sm:inline-flex"
+              >
                 <LuxuryButton variant="lemon" size="sm">
                   Book
                 </LuxuryButton>
-              </Link>
+              </button>
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen((prev) => !prev)}
                 aria-label="Toggle navigation menu"
-                className="p-2.5 rounded-xl bg-[#0B192C] text-white hover:bg-[#003366] transition-colors focus:outline-none cursor-pointer"
+                className="p-2 sm:p-2.5 rounded-xl bg-[#0B192C] text-white hover:bg-[#003366] transition-colors focus:outline-none cursor-pointer shrink-0"
               >
-                {isMobileMenuOpen ? <X className="w-6 h-6 text-[#9BC800]" /> : <Menu className="w-6 h-6 text-white" />}
+                {isMobileMenuOpen ? <X className="w-5 h-5 sm:w-6 sm:h-6 text-[#9BC800]" /> : <Menu className="w-5 h-5 sm:w-6 sm:h-6 text-white" />}
               </button>
             </div>
           </div>
@@ -153,19 +157,24 @@ export const LuxuryNavbar = () => {
             transition={{ duration: 0.25 }}
             className="lg:hidden bg-white border-b-2 border-[#0B192C]/10 shadow-2xl overflow-hidden text-[#0E1726]"
           >
-            <div className="px-5 py-6 space-y-2">
-              {navLinks.map((link, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => handleMobileNavigate(link.href)}
-                  className={`w-full text-left block px-4 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-colors ${
-                    pathname === link.href ? 'bg-[#9BC800] text-[#0B192C]' : 'text-[#0B192C] hover:bg-[#F4F6F9]'
-                  }`}
-                >
-                  {link.name}
-                </button>
-              ))}
+            <div className="px-5 py-6 space-y-1.5">
+              {navLinks.map((link, idx) => {
+                const isActive = pathname === link.href;
+                return (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleMobileNavigate(link.href)}
+                    className={`w-full text-left block px-4 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-all ${
+                      isActive
+                        ? 'bg-[#003366]/10 text-[#003366] border-l-4 border-[#9BC800] font-black'
+                        : 'text-[#0B192C] hover:bg-[#F4F6F9]'
+                    }`}
+                  >
+                    {link.name}
+                  </button>
+                );
+              })}
 
               <div className="pt-4 border-t border-slate-200 space-y-3">
                 <button
