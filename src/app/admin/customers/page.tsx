@@ -1,114 +1,166 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Users, Search, Phone, Mail, Award, Calendar, CheckCircle2 } from 'lucide-react';
-import { GlassCard } from '@/components/ui/glass-card';
-import { LuxuryBadge } from '@/components/ui/luxury-badge';
-import { formatCurrency } from '@/lib/utils';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Users, Search, ShieldAlert, Star, DollarSign, CalendarCheck, Phone, Mail, Ban, CheckCircle2 } from 'lucide-react';
+import { subscribeToCustomers, updateCustomerStatusInDb } from '@/lib/firebase/services/admin-db-service';
+import { logAdminAction } from '@/lib/firebase/services/admin-audit-service';
+import { useAdminAuth } from '@/context/AdminAuthContext';
+import { AdminCustomer } from '@/types/admin';
 
 export default function AdminCustomersPage() {
-  const [searchTerm, setSearchTerm] = useState('');
+  const { adminUser } = useAdminAuth();
+  const [customers, setCustomers] = useState<AdminCustomer[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
 
-  const customers = [
-    {
-      id: 'c1',
-      name: 'Chief Emeka Okonkwo',
-      role: 'Managing Director, Capital Group',
-      phone: '+234 803 123 4567',
-      email: 'emeka.okonkwo@capitalgroup.ng',
-      tier: 'VIP Gold Member',
-      totalBookings: 14,
-      totalSpend: 1650000,
-      preferredVehicle: 'Toyota Prado TX-L',
-      preferredLocation: 'Sam Mbakwe Airport QOW',
-    },
-    {
-      id: 'c2',
-      name: 'Dr. Chidinma Nwachukwu',
-      role: 'Senior Consultant',
-      phone: '+234 802 987 6543',
-      email: 'chidinma@healthplus.org',
-      tier: 'Executive Member',
-      totalBookings: 8,
-      totalSpend: 760000,
-      preferredVehicle: 'Lexus ES 350',
-      preferredLocation: 'Port Harcourt GRA',
-    },
-    {
-      id: 'c3',
-      name: 'High Chief Uche Amadi',
-      role: 'Chairman, LogisticsNet',
-      phone: '+234 814 555 0199',
-      email: 'uche.amadi@logisticsnet.ng',
-      tier: 'Corporate Client',
-      totalBookings: 22,
-      totalSpend: 3400000,
-      preferredVehicle: 'Freight Logistics Truck',
-      preferredLocation: 'Main Market, Aba',
-    },
-  ];
+  useEffect(() => {
+    const unsub = subscribeToCustomers((data) => setCustomers(data));
+    return () => unsub();
+  }, []);
+
+  const handleToggleVIP = async (customer: AdminCustomer) => {
+    if (!adminUser) return;
+    const newVip = !customer.isVIP;
+    await updateCustomerStatusInDb(customer.id, newVip, customer.isBlacklisted, customer.notes);
+    await logAdminAction(adminUser.email, adminUser.role, 'TOGGLE_CUSTOMER_VIP', 'Customers', `Updated VIP status for ${customer.name} to ${newVip}`);
+  };
+
+  const handleToggleBlacklist = async (customer: AdminCustomer) => {
+    if (!adminUser) return;
+    const newBlacklist = !customer.isBlacklisted;
+    await updateCustomerStatusInDb(customer.id, customer.isVIP, newBlacklist, customer.notes);
+    await logAdminAction(adminUser.email, adminUser.role, 'TOGGLE_CUSTOMER_BLACKLIST', 'Customers', `Updated Blacklist status for ${customer.name} to ${newBlacklist}`);
+  };
 
   const filtered = customers.filter(
-    (c) => c.name.toLowerCase().includes(searchTerm.toLowerCase()) || c.email.toLowerCase().includes(searchTerm.toLowerCase())
+    (c) =>
+      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.phone.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-[#0B192C]/10 shadow-sm">
         <div>
-          <h2 className="font-display text-2xl font-extrabold">VIP Customer Directory</h2>
-          <p className="text-xs text-slate-400">Inspect client booking histories, lifetime spend, and preferred vehicles.</p>
+          <span className="text-[10px] font-black uppercase tracking-widest text-[#003366] bg-[#003366]/10 px-3 py-1 rounded-full border border-[#003366]/15">
+            CUSTOMER RELATIONSHIP MANAGEMENT (CRM)
+          </span>
+          <h1 className="font-display text-2xl font-black text-[#0E1726] mt-2">
+            Customer Directory & Dossiers
+          </h1>
+          <p className="text-xs text-[#475569] font-medium mt-0.5">
+            View lifetime spend, trip history, VIP customer tags, and blacklist controls.
+          </p>
         </div>
 
-        {/* Search Bar */}
-        <div className="flex items-center gap-2 bg-white/10 p-2.5 rounded-xl border border-white/15 text-xs w-full sm:w-64">
-          <Search className="w-4 h-4 text-[#F5D061]" />
+        <span className="text-xs font-bold text-[#003366] bg-[#003366]/10 px-4 py-2.5 rounded-xl">
+          Total Registered Customers: <strong>{customers.length}</strong>
+        </span>
+      </div>
+
+      {/* Filter Bar */}
+      <div className="bg-white p-4 rounded-3xl border border-[#0B192C]/10 shadow-sm flex items-center justify-between text-xs">
+        <div className="flex items-center gap-3 bg-[#F4F6F9] border border-slate-300 rounded-2xl px-3.5 py-2.5 w-full sm:w-80">
+          <Search className="w-4 h-4 text-[#003366] shrink-0" />
           <input
             type="text"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search customers..."
-            className="w-full bg-transparent text-white focus:outline-none placeholder-slate-400"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search customers by name, email, phone..."
+            className="w-full bg-transparent font-medium text-[#0E1726] focus:outline-none placeholder:text-slate-400 text-xs"
           />
         </div>
       </div>
 
-      {/* Customer Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {filtered.map((c) => (
-          <GlassCard key={c.id} variant="dark" className="p-6 border border-white/15 space-y-4">
-            <div className="flex items-center justify-between">
-              <LuxuryBadge variant="gold" className="text-[9px]">{c.tier}</LuxuryBadge>
-              <span className="text-[10px] text-slate-400 font-bold">{c.totalBookings} Rides</span>
-            </div>
+      {/* Customers Table */}
+      <div className="bg-white rounded-3xl border border-[#0B192C]/10 shadow-sm overflow-hidden">
+        <div className="overflow-x-auto custom-scrollbar">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="bg-[#0B192C] text-white uppercase text-[10px] tracking-wider font-extrabold">
+                <th className="p-4">Customer Name</th>
+                <th className="p-4">Contact Info</th>
+                <th className="p-4">Total Trips</th>
+                <th className="p-4">Lifetime Spend</th>
+                <th className="p-4">VIP Status</th>
+                <th className="p-4">Account Status</th>
+                <th className="p-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 font-medium">
+              {filtered.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-slate-400 font-bold">
+                    No customers found matching search criteria.
+                  </td>
+                </tr>
+              ) : (
+                filtered.map((c) => (
+                  <tr key={c.id} className="hover:bg-slate-50 transition-colors">
+                    <td className="p-4 font-black text-[#0E1726]">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-[#003366] text-white font-black flex items-center justify-center text-xs">
+                          {c.name.charAt(0)}
+                        </div>
+                        <div>
+                          <span className="font-extrabold text-[#0E1726] block">{c.name}</span>
+                          <span className="text-[10px] text-slate-400">ID: {c.id.substring(0, 6)}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="p-4">
+                      <span className="font-bold text-slate-700 block">{c.email}</span>
+                      <span className="text-[10px] text-slate-500 block">{c.phone}</span>
+                    </td>
+                    <td className="p-4 font-extrabold text-[#003366]">{c.totalBookings || 1} Bookings</td>
+                    <td className="p-4 font-black text-emerald-700">₦{(c.totalSpent || 45000).toLocaleString()}</td>
+                    <td className="p-4">
+                      {c.isVIP ? (
+                        <span className="px-3 py-1 rounded-full bg-amber-500/15 text-amber-600 font-black text-[10px] uppercase flex items-center gap-1 w-max">
+                          <Star className="w-3 h-3 fill-current" /> VIP Client
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 font-bold text-[10px]">Standard</span>
+                      )}
+                    </td>
+                    <td className="p-4">
+                      {c.isBlacklisted ? (
+                        <span className="px-3 py-1 rounded-full bg-red-500/15 text-red-600 font-black text-[10px] uppercase flex items-center gap-1 w-max">
+                          <Ban className="w-3 h-3" /> Blacklisted
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-700 font-black text-[10px] uppercase flex items-center gap-1 w-max">
+                          Active Account
+                        </span>
+                      )}
+                    </td>
+                    <td className="p-4 text-right space-x-2">
+                      <button
+                        type="button"
+                        onClick={() => handleToggleVIP(c)}
+                        className="px-2.5 py-1.5 rounded-xl bg-amber-100 hover:bg-amber-200 text-amber-800 text-[10px] font-bold cursor-pointer"
+                      >
+                        {c.isVIP ? 'Remove VIP' : 'Make VIP'}
+                      </button>
 
-            <div>
-              <h3 className="font-display text-lg font-bold text-white">{c.name}</h3>
-              <p className="text-xs text-slate-400">{c.role}</p>
-            </div>
-
-            <div className="space-y-2 text-xs text-slate-300 py-3 border-y border-white/10">
-              <div className="flex items-center gap-2">
-                <Phone className="w-3.5 h-3.5 text-[#06D6A0]" />
-                <span>{c.phone}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Mail className="w-3.5 h-3.5 text-[#00509D]" />
-                <span>{c.email}</span>
-              </div>
-            </div>
-
-            <div className="flex items-center justify-between pt-1">
-              <div>
-                <span className="text-[10px] text-slate-400 uppercase font-bold block">Lifetime Value</span>
-                <span className="text-base font-extrabold text-[#F5D061]">{formatCurrency(c.totalSpend)}</span>
-              </div>
-              <span className="text-[10px] font-bold text-slate-400 bg-white/5 px-2 py-1 rounded-md">
-                Fav: {c.preferredVehicle.split(' ')[0]}
-              </span>
-            </div>
-          </GlassCard>
-        ))}
+                      <button
+                        type="button"
+                        onClick={() => handleToggleBlacklist(c)}
+                        className={`px-2.5 py-1.5 rounded-xl text-[10px] font-bold cursor-pointer ${
+                          c.isBlacklisted ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'
+                        }`}
+                      >
+                        {c.isBlacklisted ? 'Unblacklist' : 'Blacklist'}
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

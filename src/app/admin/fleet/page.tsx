@@ -1,65 +1,41 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Car, Plus, Edit3, Trash2, Check, Users, Briefcase, Star } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Car, Plus, Search, Edit, Trash2, ShieldCheck, CheckCircle2, XCircle, Wrench, Eye, EyeOff } from 'lucide-react';
+import { subscribeToFleet, saveVehicleToDb, deleteVehicleFromDb } from '@/lib/firebase/services/admin-db-service';
+import { logAdminAction } from '@/lib/firebase/services/admin-audit-service';
+import { useAdminAuth } from '@/context/AdminAuthContext';
 import { Vehicle } from '@/types';
-import { getVehicles, saveVehicle, deleteVehicle } from '@/lib/firebase/services/fleet-service';
-import { formatCurrency } from '@/lib/utils';
-import { GlassCard } from '@/components/ui/glass-card';
-import { LuxuryButton } from '@/components/ui/luxury-button';
-import { LuxuryBadge } from '@/components/ui/luxury-badge';
-import { ModalDrawer } from '@/components/ui/modal-drawer';
 
-export default function AdminFleetManagerPage() {
+export default function AdminFleetPage() {
+  const { adminUser } = useAdminAuth();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingVehicle, setEditingVehicle] = useState<Partial<Vehicle>>({
-    name: '',
-    brand: '',
-    model: '',
-    year: 2024,
-    category: 'rental',
-    categoryName: 'Luxury SUV',
-    image: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1200&q=80',
-    passengers: 5,
-    luggage: 4,
-    transmission: 'Automatic',
-    pricePerDay: 100000,
-    isAvailable: true,
-    isFeatured: true,
-    maintenanceStatus: 'Active',
-    description: '',
-  });
+  const [editingVehicle, setEditingVehicle] = useState<Partial<Vehicle> | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    loadFleet();
+    const unsub = subscribeToFleet((data) => setVehicles(data));
+    return () => unsub();
   }, []);
-
-  const loadFleet = async () => {
-    const data = await getVehicles();
-    setVehicles(data);
-  };
 
   const handleOpenAddModal = () => {
     setEditingVehicle({
-      id: `v_${Date.now()}`,
       name: '',
-      brand: '',
-      model: '',
-      year: 2024,
-      category: 'rental',
-      categoryName: 'Executive SUV',
-      image: 'https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?auto=format&fit=crop&w=1200&q=80',
-      passengers: 4,
-      luggage: 3,
+      categoryName: 'SUVs',
+      categoryId: 'cat-suv',
+      image: '/images/suv_prado_1.jpg',
+      pricePerDay: 85000,
+      passengers: 7,
+      luggage: 5,
       transmission: 'Automatic',
-      amenities: ['Chauffeur Included', 'Full AC'],
-      pricePerDay: 120000,
+      fuelType: 'Petrol',
+      features: ['Chchauffeur Included', 'Air Conditioning', 'Leather Seats', 'Full Tint'],
+      description: 'Executive vehicle for transport across Owerri and South-East Nigeria.',
       isAvailable: true,
-      isFeatured: true,
-      maintenanceStatus: 'Active',
-      displayOrder: vehicles.length + 1,
-      description: 'Handcrafted executive vehicle.',
     });
     setIsModalOpen(true);
   };
@@ -69,201 +45,268 @@ export default function AdminFleetManagerPage() {
     setIsModalOpen(true);
   };
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSaveVehicle = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingVehicle.name || !editingVehicle.pricePerDay) return;
-    await saveVehicle(editingVehicle as Vehicle);
-    setIsModalOpen(false);
-    loadFleet();
-  };
+    if (!editingVehicle || !adminUser) return;
+    setIsSubmitting(true);
 
-  const handleDelete = async (id: string) => {
-    if (confirm('Are you sure you want to delete this vehicle from CMS?')) {
-      await deleteVehicle(id);
-      loadFleet();
+    try {
+      const docId = await saveVehicleToDb(editingVehicle);
+      await logAdminAction(
+        adminUser.email,
+        adminUser.role,
+        editingVehicle.id ? 'UPDATE_VEHICLE' : 'CREATE_VEHICLE',
+        'Fleet',
+        `Saved vehicle ${editingVehicle.name} (${docId})`
+      );
+      setIsModalOpen(false);
+      setEditingVehicle(null);
+    } catch (err) {
+      console.error('[Save Vehicle Error]:', err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  const handleDelete = async (vehicle: Vehicle) => {
+    if (!adminUser || !confirm(`Are you sure you want to delete ${vehicle.name}?`)) return;
+    try {
+      await deleteVehicleFromDb(vehicle.id);
+      await logAdminAction(adminUser.email, adminUser.role, 'DELETE_VEHICLE', 'Fleet', `Deleted vehicle ${vehicle.name}`);
+    } catch (err) {
+      console.error('[Delete Error]:', err);
+    }
+  };
+
+  const filteredVehicles = vehicles.filter(
+    (v) =>
+      v.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (v.categoryName || '').toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
-    <div className="space-y-8">
-      <div className="flex items-center justify-between">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-6 rounded-3xl border border-[#0B192C]/10 shadow-sm">
         <div>
-          <h2 className="font-display text-2xl font-extrabold">Fleet CMS & Inventory</h2>
-          <p className="text-xs text-slate-400">Add, edit rates, toggle availability, and update vehicle specs.</p>
+          <span className="text-[10px] font-black uppercase tracking-widest text-[#003366] bg-[#003366]/10 px-3 py-1 rounded-full border border-[#003366]/15">
+            FLEET & ASSET MANAGEMENT
+          </span>
+          <h1 className="font-display text-2xl font-black text-[#0E1726] mt-2">
+            Vehicle Fleet Manager
+          </h1>
+          <p className="text-xs text-[#475569] font-medium mt-0.5">
+            Add, update pricing, toggle availability, and control published status.
+          </p>
         </div>
-        <LuxuryButton variant="gold" size="sm" onClick={handleOpenAddModal} icon={<Plus className="w-4 h-4" />}>
-          Add New Vehicle
-        </LuxuryButton>
+
+        <button
+          onClick={handleOpenAddModal}
+          className="px-4 py-2.5 rounded-xl bg-[#9BC800] hover:bg-[#8ab300] text-[#0B192C] text-xs font-black uppercase tracking-wider shadow-lemon flex items-center gap-2 cursor-pointer"
+        >
+          <Plus className="w-4 h-4" />
+          <span>Add New Vehicle</span>
+        </button>
       </div>
 
-      {/* Fleet Cards Grid */}
+      {/* Search & Grid Stats */}
+      <div className="bg-white p-4 rounded-3xl border border-[#0B192C]/10 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-3 bg-[#F4F6F9] border border-slate-300 rounded-2xl px-3.5 py-2.5 w-full sm:w-80">
+          <Search className="w-4 h-4 text-[#003366] shrink-0" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search fleet by name or category..."
+            className="w-full bg-transparent font-medium text-[#0E1726] focus:outline-none placeholder:text-slate-400 text-xs"
+          />
+        </div>
+
+        <div className="flex items-center gap-3 text-xs font-extrabold text-[#0E1726]">
+          <span>Total: <strong>{vehicles.length}</strong></span>
+          <span>Available: <strong className="text-emerald-600">{vehicles.filter((v) => v.isAvailable).length}</strong></span>
+        </div>
+      </div>
+
+      {/* Vehicle Grid Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {vehicles.map((v) => (
-          <GlassCard key={v.id} variant="dark" className="p-0 overflow-hidden border border-white/15">
-            <div className="relative h-48 w-full bg-slate-900">
-              <img src={v.image} alt={v.name} className="w-full h-full object-cover" />
-              <div className="absolute top-3 left-3">
-                <LuxuryBadge variant="gold" className="bg-slate-950/80">
-                  {v.categoryName}
-                </LuxuryBadge>
+        {filteredVehicles.map((v) => (
+          <motion.div
+            key={v.id}
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-3xl border border-[#0B192C]/10 shadow-sm overflow-hidden flex flex-col justify-between group hover:shadow-md transition-all"
+          >
+            <div>
+              <div className="relative h-48 w-full bg-[#0B192C]">
+                <img src={v.image} alt={v.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div className="absolute top-3 right-3">
+                  {v.isAvailable ? (
+                    <span className="px-3 py-1 rounded-full bg-emerald-500 text-white font-black text-[10px] uppercase shadow">
+                      Available
+                    </span>
+                  ) : (
+                    <span className="px-3 py-1 rounded-full bg-amber-500 text-white font-black text-[10px] uppercase shadow">
+                      On Hire / Maintenance
+                    </span>
+                  )}
+                </div>
               </div>
-              <div className="absolute top-3 right-3">
-                <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full uppercase ${
-                  v.isAvailable ? 'bg-emerald-500/80 text-white' : 'bg-red-500/80 text-white'
-                }`}>
-                  {v.isAvailable ? 'Available' : 'Reserved'}
+
+              <div className="p-5 space-y-3">
+                <span className="text-[10px] font-black text-[#9BC800] bg-[#0B192C] px-2.5 py-1 rounded-full uppercase">
+                  {v.categoryName || 'SUV'}
                 </span>
+                <h3 className="font-display text-lg font-black text-[#0E1726]">
+                  {v.name}
+                </h3>
+                <p className="text-xs text-[#475569] font-medium line-clamp-2">
+                  {v.description}
+                </p>
+                <div className="pt-1 flex items-center justify-between border-t border-slate-100 text-xs font-black text-[#003366]">
+                  <span>Daily Rate:</span>
+                  <span className="text-base text-[#0E1726]">₦{v.pricePerDay.toLocaleString()}</span>
+                </div>
               </div>
             </div>
 
-            <div className="p-5 space-y-4">
-              <div>
-                <h3 className="font-display text-lg font-bold text-white">{v.name}</h3>
-                <span className="text-base font-extrabold text-[#F5D061]">{formatCurrency(v.pricePerDay)}/day</span>
-              </div>
+            <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => handleOpenEditModal(v)}
+                className="px-3 py-1.5 rounded-xl bg-[#003366] hover:bg-[#0B192C] text-white text-xs font-extrabold transition-colors flex items-center gap-1.5 cursor-pointer"
+              >
+                <Edit className="w-3.5 h-3.5" />
+                <span>Edit Vehicle</span>
+              </button>
 
-              <div className="grid grid-cols-2 gap-2 text-xs text-slate-300">
-                <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5 text-[#D4AF37]" /> {v.passengers} Pass</span>
-                <span className="flex items-center gap-1.5"><Briefcase className="w-3.5 h-3.5 text-[#06D6A0]" /> {v.luggage} Bags</span>
-              </div>
-
-              <div className="pt-3 border-t border-white/10 flex items-center justify-between">
-                <button
-                  onClick={() => handleOpenEditModal(v)}
-                  className="px-3 py-1.5 bg-[#00509D] hover:bg-blue-600 text-white rounded-lg font-bold text-xs flex items-center gap-1.5"
-                >
-                  <Edit3 className="w-3.5 h-3.5" /> Edit CMS
-                </button>
-                <button
-                  onClick={() => handleDelete(v.id)}
-                  className="p-1.5 text-slate-400 hover:text-red-400 transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => handleDelete(v)}
+                className="p-2 rounded-xl text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                title="Delete Vehicle"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
             </div>
-          </GlassCard>
+          </motion.div>
         ))}
       </div>
 
-      {/* EDIT/ADD VEHICLE MODAL */}
-      <ModalDrawer
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={editingVehicle.id ? 'Edit Vehicle Specifications' : 'Add New Fleet Vehicle'}
-      >
-        <form onSubmit={handleSave} className="space-y-4 text-xs text-slate-900">
-          <div className="space-y-1">
-            <label className="font-bold uppercase tracking-wider text-slate-700">Vehicle Name</label>
-            <input
-              type="text"
-              required
-              value={editingVehicle.name || ''}
-              onChange={(e) => setEditingVehicle({ ...editingVehicle, name: e.target.value })}
-              placeholder="e.g. Toyota Prado TX-L"
-              className="w-full p-3 border border-slate-300 rounded-xl font-medium focus:outline-none focus:border-[#00509D]"
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="font-bold uppercase tracking-wider text-slate-700">Brand</label>
-              <input
-                type="text"
-                value={editingVehicle.brand || ''}
-                onChange={(e) => setEditingVehicle({ ...editingVehicle, brand: e.target.value })}
-                placeholder="e.g. Toyota"
-                className="w-full p-3 border border-slate-300 rounded-xl font-medium focus:outline-none"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="font-bold uppercase tracking-wider text-slate-700">Category Tag</label>
-              <input
-                type="text"
-                value={editingVehicle.categoryName || ''}
-                onChange={(e) => setEditingVehicle({ ...editingVehicle, categoryName: e.target.value })}
-                placeholder="e.g. Executive SUV"
-                className="w-full p-3 border border-slate-300 rounded-xl font-medium focus:outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="font-bold uppercase tracking-wider text-slate-700">Daily Rate (₦ NGN)</label>
-              <input
-                type="number"
-                required
-                value={editingVehicle.pricePerDay || 0}
-                onChange={(e) => setEditingVehicle({ ...editingVehicle, pricePerDay: Number(e.target.value) })}
-                className="w-full p-3 border border-slate-300 rounded-xl font-medium focus:outline-none"
-              />
-            </div>
-
-            <div className="space-y-1">
-              <label className="font-bold uppercase tracking-wider text-slate-700">Airport Flat Rate (₦ NGN)</label>
-              <input
-                type="number"
-                value={editingVehicle.airportFlatRate || 0}
-                onChange={(e) => setEditingVehicle({ ...editingVehicle, airportFlatRate: Number(e.target.value) })}
-                className="w-full p-3 border border-slate-300 rounded-xl font-medium focus:outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="space-y-1">
-            <label className="font-bold uppercase tracking-wider text-slate-700">Image Asset URL</label>
-            <input
-              type="text"
-              value={editingVehicle.image || ''}
-              onChange={(e) => setEditingVehicle({ ...editingVehicle, image: e.target.value })}
-              className="w-full p-3 border border-slate-300 rounded-xl font-medium focus:outline-none"
-            />
-          </div>
-
-          <div className="space-y-1">
-            <label className="font-bold uppercase tracking-wider text-slate-700">Description</label>
-            <textarea
-              rows={2}
-              value={editingVehicle.description || ''}
-              onChange={(e) => setEditingVehicle({ ...editingVehicle, description: e.target.value })}
-              className="w-full p-3 border border-slate-300 rounded-xl font-medium focus:outline-none"
-            />
-          </div>
-
-          <div className="flex items-center gap-6 pt-2">
-            <label className="flex items-center gap-2 font-bold cursor-pointer">
-              <input
-                type="checkbox"
-                checked={editingVehicle.isAvailable || false}
-                onChange={(e) => setEditingVehicle({ ...editingVehicle, isAvailable: e.target.checked })}
-                className="w-4 h-4 accent-[#06D6A0]"
-              />
-              <span>Available for Hire</span>
-            </label>
-
-            <label className="flex items-center gap-2 font-bold cursor-pointer">
-              <input
-                type="checkbox"
-                checked={editingVehicle.isFeatured || false}
-                onChange={(e) => setEditingVehicle({ ...editingVehicle, isFeatured: e.target.checked })}
-                className="w-4 h-4 accent-[#D4AF37]"
-              />
-              <span>Feature on Homepage</span>
-            </label>
-          </div>
-
-          <div className="pt-4 border-t border-slate-200">
-            <button
-              type="submit"
-              className="w-full py-3.5 bg-[#00509D] hover:bg-blue-700 text-white font-extrabold text-sm rounded-xl"
+      {/* EDIT / ADD VEHICLE MODAL */}
+      <AnimatePresence>
+        {isModalOpen && editingVehicle && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto">
+            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative bg-white rounded-3xl p-6 border border-[#0B192C]/15 shadow-2xl w-full max-w-lg space-y-4 z-10 text-[#0E1726] my-8"
             >
-              Save Vehicle to CMS
-            </button>
+              <div className="border-b border-slate-100 pb-3">
+                <h3 className="font-display text-xl font-black text-[#0E1726]">
+                  {editingVehicle.id ? 'Edit Vehicle Details' : 'Add New Fleet Vehicle'}
+                </h3>
+              </div>
+
+              <form onSubmit={handleSaveVehicle} className="space-y-4 text-xs max-h-[70vh] overflow-y-auto pr-1 custom-scrollbar">
+                <div className="space-y-1">
+                  <label className="font-extrabold text-[#0E1726]">Vehicle Name & Model</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingVehicle.name || ''}
+                    onChange={(e) => setEditingVehicle({ ...editingVehicle, name: e.target.value })}
+                    placeholder="Toyota Land Cruiser Prado TX-L"
+                    className="w-full p-3 rounded-xl bg-[#F4F6F9] border border-slate-300 font-bold"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="font-extrabold text-[#0E1726]">Category Name</label>
+                    <select
+                      value={editingVehicle.categoryName || 'SUVs'}
+                      onChange={(e) => setEditingVehicle({ ...editingVehicle, categoryName: e.target.value })}
+                      className="w-full p-3 rounded-xl bg-[#F4F6F9] border border-slate-300 font-bold"
+                    >
+                      <option value="SUVs">SUVs</option>
+                      <option value="Executive Cars">Executive Cars</option>
+                      <option value="Luxury Vehicles">Luxury Vehicles</option>
+                      <option value="Mini Bus / HiAce">Mini Bus / HiAce</option>
+                      <option value="Logistics Vans">Logistics Vans</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="font-extrabold text-[#0E1726]">Daily Rate (₦)</label>
+                    <input
+                      type="number"
+                      required
+                      value={editingVehicle.pricePerDay || 85000}
+                      onChange={(e) => setEditingVehicle({ ...editingVehicle, pricePerDay: Number(e.target.value) })}
+                      className="w-full p-3 rounded-xl bg-[#F4F6F9] border border-slate-300 font-bold"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-extrabold text-[#0E1726]">Image Path / URL</label>
+                  <input
+                    type="text"
+                    required
+                    value={editingVehicle.image || ''}
+                    onChange={(e) => setEditingVehicle({ ...editingVehicle, image: e.target.value })}
+                    placeholder="/images/suv_prado_1.jpg"
+                    className="w-full p-3 rounded-xl bg-[#F4F6F9] border border-slate-300 font-bold"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-extrabold text-[#0E1726]">Description</label>
+                  <textarea
+                    rows={3}
+                    value={editingVehicle.description || ''}
+                    onChange={(e) => setEditingVehicle({ ...editingVehicle, description: e.target.value })}
+                    className="w-full p-3 rounded-xl bg-[#F4F6F9] border border-slate-300 font-bold"
+                  />
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <input
+                    type="checkbox"
+                    id="isAvail"
+                    checked={editingVehicle.isAvailable ?? true}
+                    onChange={(e) => setEditingVehicle({ ...editingVehicle, isAvailable: e.target.checked })}
+                    className="w-4 h-4 text-[#003366] rounded cursor-pointer"
+                  />
+                  <label htmlFor="isAvail" className="font-extrabold text-[#0E1726] cursor-pointer">
+                    Vehicle Available for Bookings
+                  </label>
+                </div>
+
+                <div className="pt-3 flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="w-1/2 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#0E1726] font-extrabold cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-1/2 py-3 rounded-xl bg-[#0B192C] hover:bg-[#003366] text-white font-black cursor-pointer shadow-md disabled:opacity-50"
+                  >
+                    {isSubmitting ? 'Saving...' : 'Save to Firestore'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
           </div>
-        </form>
-      </ModalDrawer>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
