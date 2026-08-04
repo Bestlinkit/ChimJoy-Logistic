@@ -18,13 +18,16 @@ import ContactFormNotificationEmail from '@/emails/templates/ContactFormNotifica
 import NewsletterSubscriptionEmail from '@/emails/templates/NewsletterSubscriptionEmail';
 import CorporateAccountApprovedEmail from '@/emails/templates/CorporateAccountApprovedEmail';
 
-const resendApiKey = process.env.RESEND_API_KEY || '';
-export const resend = new Resend(resendApiKey);
-
 const SENDER_EMAIL = 'ChimJoy Logistics <onboarding@resend.dev>';
+
+export function getResendClient() {
+  const apiKey = process.env.RESEND_API_KEY || 're_placeholder_key_for_build';
+  return new Resend(apiKey);
+}
 
 export async function sendReactEmail(to: string, subject: string, reactComponent: React.ReactElement) {
   try {
+    const resend = getResendClient();
     const { data, error } = await resend.emails.send({
       from: SENDER_EMAIL,
       to,
@@ -48,39 +51,39 @@ export async function sendReactEmail(to: string, subject: string, reactComponent
 export async function sendWelcomeEmail(to: string, name: string) {
   return sendReactEmail(
     to,
-    'Welcome to ChimJoy Logistics — Executive Mobility & Car Hire',
+    'Welcome to ChimJoy Logistics — Premier Mobility',
     React.createElement(WelcomeEmail, { name })
   );
 }
 
-// 2. Verify Email
-export async function sendVerifyEmail(to: string, name: string, code: string) {
+// 2. Verify Email Link
+export async function sendVerifyEmail(to: string, name: string, verifyUrl: string) {
   return sendReactEmail(
     to,
-    `Verify Your Email Address: ${code} — ChimJoy Logistics`,
-    React.createElement(VerifyEmail, { name, code })
+    'Verify Your ChimJoy Account Email',
+    React.createElement(VerifyEmail, { name, verifyUrl })
   );
 }
 
-// 3. Login Verification OTP
-export async function sendLoginVerificationEmail(to: string, name: string, code: string, device?: string) {
+// 3. Login Verification OTP Code
+export async function sendLoginVerificationEmail(to: string, name: string, otpCode: string) {
   return sendReactEmail(
     to,
-    `Authorize Sign In: ${code} — ChimJoy Security`,
-    React.createElement(LoginVerificationEmail, { name, code, device })
+    `Your Login Verification Code: ${otpCode} — ChimJoy`,
+    React.createElement(LoginVerificationEmail, { name, code: otpCode })
   );
 }
 
-// 4. Forgot Password
+// 4. Forgot Password Reset Link
 export async function sendForgotPasswordEmail(to: string, name: string, resetUrl: string) {
   return sendReactEmail(
     to,
-    'Reset Your Password — ChimJoy Logistics',
+    'Reset Your ChimJoy Account Password',
     React.createElement(ForgotPasswordEmail, { name, resetUrl })
   );
 }
 
-// 5. Password Changed
+// 5. Password Changed Confirmation
 export async function sendPasswordChangedEmail(to: string, name: string) {
   return sendReactEmail(
     to,
@@ -141,33 +144,31 @@ export async function sendBookingConfirmedEmail(
   );
 }
 
-// 8. Driver Assigned
+// 8. Driver Assigned Notification
 export async function sendDriverAssignedEmail(
   to: string,
   name: string,
   refCode: string,
   driverName: string,
   driverPhone: string,
-  vehicleModel: string,
-  plateNumber: string,
+  vehicleName: string,
   pickupTime: string
 ) {
   return sendReactEmail(
     to,
-    `Chauffeur Assigned: ${driverName} (${plateNumber}) — Ref #${refCode}`,
+    `Driver Assigned for Booking #${refCode} — ChimJoy Logistics`,
     React.createElement(DriverAssignedEmail, {
       name,
       refCode,
       driverName,
       driverPhone,
-      vehicleModel,
-      plateNumber,
+      vehicleModel: vehicleName,
       pickupTime,
     })
   );
 }
 
-// 9. Trip Reminder
+// 9. Trip Reminder Email (24h or 2h before)
 export async function sendTripReminderEmail(
   to: string,
   name: string,
@@ -179,7 +180,7 @@ export async function sendTripReminderEmail(
 ) {
   return sendReactEmail(
     to,
-    `Upcoming Trip Reminder: ${pickupTime} — Ref #${refCode}`,
+    `Upcoming Trip Reminder [Ref #${refCode}] — ChimJoy Logistics`,
     React.createElement(TripReminderEmail, {
       name,
       refCode,
@@ -191,50 +192,66 @@ export async function sendTripReminderEmail(
   );
 }
 
-// 10. Driver Has Arrived
+// 10. Driver Arrived Notification
 export async function sendDriverArrivedEmail(
   to: string,
   name: string,
+  refCode: string,
   driverName: string,
   driverPhone: string,
-  vehicleDetails: string,
-  plateNumber: string,
-  pickupLocation: string
+  vehicleName: string
 ) {
   return sendReactEmail(
     to,
-    `Your Chauffeur ${driverName} Has Arrived! — ChimJoy Logistics`,
+    `Your Driver Has Arrived! [Ref #${refCode}] — ChimJoy Logistics`,
     React.createElement(DriverArrivedEmail, {
       name,
       driverName,
       driverPhone,
-      vehicleDetails,
-      plateNumber,
-      pickupLocation,
+      vehicleDetails: vehicleName,
     })
   );
 }
 
-// 11. Booking Completed
-export async function sendBookingCompletedEmail(to: string, name: string, refCode: string) {
+// 11. Booking Completed & Receipt Email
+export async function sendBookingCompletedEmail(
+  to: string,
+  name: string,
+  refCode: string,
+  vehicleName?: string,
+  totalPrice?: number,
+  receiptUrl?: string
+) {
   return sendReactEmail(
     to,
-    `Thank You for Traveling with ChimJoy [Ref #${refCode}]`,
-    React.createElement(BookingCompletedEmail, { name, refCode })
+    `Trip Completed & Official Receipt [Ref #${refCode}] — ChimJoy`,
+    React.createElement(BookingCompletedEmail, {
+      name,
+      refCode,
+    })
   );
 }
 
 // 12. Booking Cancelled
-export async function sendBookingCancelledEmail(to: string, name: string, refCode: string, reason?: string) {
+export async function sendBookingCancelledEmail(
+  to: string,
+  name: string,
+  refCode: string,
+  reason: string
+) {
   return sendReactEmail(
     to,
-    `Booking Cancellation Confirmation [Ref #${refCode}] — ChimJoy Logistics`,
-    React.createElement(BookingCancelledEmail, { name, refCode, reason })
+    `Booking Cancelled [Ref #${refCode}] — ChimJoy Logistics`,
+    React.createElement(BookingCancelledEmail, {
+      name,
+      refCode,
+      reason,
+    })
   );
 }
 
-// 13. Contact Form Notification (Admin)
-export async function sendContactFormAdminNotification(
+// 13. Contact Form Submission Admin Alert
+export async function sendContactFormNotificationEmail(
   adminEmail: string,
   senderName: string,
   senderEmail: string,
@@ -244,7 +261,7 @@ export async function sendContactFormAdminNotification(
 ) {
   return sendReactEmail(
     adminEmail,
-    `New Enquiry from ${senderName}: ${subject}`,
+    `New Contact Form Submission: ${subject}`,
     React.createElement(ContactFormNotificationEmail, {
       senderName,
       senderEmail,
