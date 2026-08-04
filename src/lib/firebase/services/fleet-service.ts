@@ -1,32 +1,47 @@
+import { db } from '../config';
+import { collection, onSnapshot, getDocs, setDoc, doc } from 'firebase/firestore';
 import { Vehicle } from '@/types';
 import { MOCK_VEHICLES } from '@/lib/mock-data';
 
-let inMemoryFleet: Vehicle[] = [...MOCK_VEHICLES];
+// Realtime Firestore subscription for public fleet
+export function subscribeToPublicFleet(callback: (vehicles: Vehicle[]) => void) {
+  const fleetRef = collection(db, 'vehicles');
+  return onSnapshot(fleetRef, async (snapshot) => {
+    if (snapshot.empty) {
+      // Auto-seed real authentic vehicles into Firestore if empty
+      for (const v of MOCK_VEHICLES) {
+        await setDoc(doc(db, 'vehicles', v.id), v);
+      }
+      callback(MOCK_VEHICLES);
+    } else {
+      const list: Vehicle[] = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...(docSnap.data() as Omit<Vehicle, 'id'>),
+      }));
+      callback(list);
+    }
+  });
+}
 
+// Single fetch for server side or fallback
 export async function getVehicles(): Promise<Vehicle[]> {
-  return Promise.resolve([...inMemoryFleet]);
+  try {
+    const fleetRef = collection(db, 'vehicles');
+    const snapshot = await getDocs(fleetRef);
+    if (snapshot.empty) {
+      return MOCK_VEHICLES;
+    }
+    return snapshot.docs.map((docSnap) => ({
+      id: docSnap.id,
+      ...(docSnap.data() as Omit<Vehicle, 'id'>),
+    }));
+  } catch (err) {
+    console.error('[getVehicles Error]:', err);
+    return MOCK_VEHICLES;
+  }
 }
 
 export async function getFeaturedVehicles(): Promise<Vehicle[]> {
-  return Promise.resolve(inMemoryFleet.filter((v) => v.isFeatured && v.isAvailable));
-}
-
-export async function getVehicleById(id: string): Promise<Vehicle | null> {
-  const vehicle = inMemoryFleet.find((v) => v.id === id);
-  return Promise.resolve(vehicle || null);
-}
-
-export async function saveVehicle(vehicle: Vehicle): Promise<Vehicle> {
-  const index = inMemoryFleet.findIndex((v) => v.id === vehicle.id);
-  if (index >= 0) {
-    inMemoryFleet[index] = vehicle;
-  } else {
-    inMemoryFleet.push(vehicle);
-  }
-  return Promise.resolve(vehicle);
-}
-
-export async function deleteVehicle(id: string): Promise<boolean> {
-  inMemoryFleet = inMemoryFleet.filter((v) => v.id !== id);
-  return Promise.resolve(true);
+  const all = await getVehicles();
+  return all.slice(0, 6);
 }

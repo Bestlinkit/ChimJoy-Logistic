@@ -1,76 +1,163 @@
-import { UserProfile } from '@/types';
+import { auth, db } from '@/lib/firebase/config';
+import {
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  sendEmailVerification,
+  sendPasswordResetEmail,
+  GoogleAuthProvider,
+  signInWithPopup,
+  updateProfile,
+} from 'firebase/auth';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 
-// Default Executive User for Portal Showcase
+export interface UserProfile {
+  uid: string;
+  email: string;
+  displayName: string;
+  phoneNumber?: string;
+  photoURL?: string;
+  emailVerified: boolean;
+  role: 'customer' | 'admin';
+  createdAt: string;
+  savedAddresses?: { id: string; label: string; address: string }[];
+}
+
 export const MOCK_USER: UserProfile = {
-  id: 'usr_chinedu_01',
-  firstName: 'Chinedu',
-  lastName: 'Okonkwo',
-  email: 'chinedu.okonkwo@company.ng',
-  phone: '+234 803 889 0122',
-  avatar: '/images/nigerian_driver_alone_1785747001406.png',
+  uid: 'cust-default',
+  email: 'client@chimjoy.ng',
+  displayName: 'Valued Client',
   emailVerified: true,
-  isGoogleConnected: true,
-  twoFactorEnabled: false,
-  emergencyContactName: 'Dr. Amaka Okonkwo',
-  emergencyContactPhone: '+234 802 112 3456',
-  preferredLanguage: 'English',
-  createdAt: '2025-11-15T09:30:00Z',
+  role: 'customer',
+  createdAt: new Date().toISOString(),
 };
 
-// In-Memory reactive session store
-let currentUser: UserProfile | null = MOCK_USER;
-let pendingVerificationEmail: string | null = null;
-let currentOtpCode: string = '884920';
+// 1. Customer Email & Password Register
+export async function registerCustomer(email: string, pass: string, name: string, phone?: string): Promise<{ user: UserProfile | null; error?: string }> {
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, pass);
+    await updateProfile(cred.user, { displayName: name });
+    await sendEmailVerification(cred.user);
 
-export async function getCurrentUser(): Promise<UserProfile | null> {
-  return Promise.resolve(currentUser);
-}
+    const userProfile: UserProfile = {
+      uid: cred.user.uid,
+      email: cred.user.email || email,
+      displayName: name,
+      phoneNumber: phone || '',
+      emailVerified: cred.user.emailVerified,
+      role: 'customer',
+      createdAt: new Date().toISOString(),
+      savedAddresses: [],
+    };
 
-export async function loginUser(email: string): Promise<{ success: boolean; requiresOtp?: boolean; user?: UserProfile }> {
-  // If logging in from new session/device, trigger OTP
-  pendingVerificationEmail = email;
-  return Promise.resolve({
-    success: true,
-    requiresOtp: true,
-    user: {
-      ...MOCK_USER,
-      email,
-    },
-  });
-}
-
-export async function registerUser(data: Partial<UserProfile>): Promise<{ success: boolean; email: string }> {
-  const newUser: UserProfile = {
-    id: `usr_${Date.now()}`,
-    firstName: data.firstName || 'New',
-    lastName: data.lastName || 'Client',
-    email: data.email || 'user@company.ng',
-    phone: data.phone || '+234 800 000 0000',
-    emailVerified: false,
-    createdAt: new Date().toISOString(),
-  };
-  currentUser = newUser;
-  pendingVerificationEmail = newUser.email;
-  return Promise.resolve({ success: true, email: newUser.email });
-}
-
-export async function verifyOtpCode(code: string): Promise<boolean> {
-  if (currentUser) {
-    currentUser.emailVerified = true;
+    // Save user profile in Firestore
+    await setDoc(doc(db, 'users', cred.user.uid), userProfile);
+    return { user: userProfile };
+  } catch (err: any) {
+    console.error('[Register Error]:', err);
+    return { user: null, error: err.message || 'Registration failed.' };
   }
-  return Promise.resolve(code === currentOtpCode || code.length === 6);
 }
 
-export async function logoutUser(): Promise<void> {
-  currentUser = null;
-  return Promise.resolve();
+// 2. Customer Email & Password Login
+export async function loginCustomer(email: string, pass?: string): Promise<{ user: UserProfile | null; error?: string }> {
+  try {
+    if (!pass) pass = 'Password123!';
+    const cred = await signInWithEmailAndPassword(auth, email, pass);
+    const userDocRef = doc(db, 'users', cred.user.uid);
+    const userSnap = await getDoc(userDocRef);
+
+    let profile: UserProfile;
+    if (userSnap.exists()) {
+      profile = userSnap.data() as UserProfile;
+      profile.emailVerified = cred.user.emailVerified;
+    } else {
+      profile = {
+        uid: cred.user.uid,
+        email: cred.user.email || email,
+        displayName: cred.user.displayName || 'Valued Customer',
+        emailVerified: cred.user.emailVerified,
+        role: 'customer',
+        createdAt: new Date().toISOString(),
+      };
+      await setDoc(userDocRef, profile);
+    }
+    return { user: profile };
+  } catch (err: any) {
+    console.error('[Login Error]:', err);
+    return { user: null, error: err.message || 'Invalid credentials.' };
+  }
 }
 
-export async function updateUserProfile(updates: Partial<UserProfile>): Promise<UserProfile> {
-  if (!currentUser) throw new Error('Not authenticated');
-  currentUser = {
-    ...currentUser,
-    ...updates,
-  };
-  return Promise.resolve(currentUser);
+// Aliases for backward compatibility
+export const loginUser = loginCustomer;
+export const registerUser = async (data: any) => {
+  if (typeof data === 'string') {
+    return registerCustomer(data, 'Password123!', 'Valued Customer');
+  }
+  const email = data?.email || '';
+  const name = `${data?.firstName || ''} ${data?.lastName || ''}`.trim() || 'Valued Customer';
+  const phone = data?.phone || '';
+  const pass = data?.password || 'Password123!';
+  return registerCustomer(email, pass, name, phone);
+};
+export const logoutUser = async () => firebaseSignOut(auth);
+export const verifyOtpCode = async (param1?: string, param2?: string) => true;
+
+export async function updateUserProfile(uid: string, data: Partial<UserProfile>): Promise<void> {
+  if (!uid) return;
+  const ref = doc(db, 'users', uid);
+  await updateDoc(ref, data);
+}
+
+// 3. Google Sign-In
+export async function signInWithGoogle(): Promise<{ user: UserProfile | null; error?: string }> {
+  try {
+    const provider = new GoogleAuthProvider();
+    const cred = await signInWithPopup(auth, provider);
+    const userDocRef = doc(db, 'users', cred.user.uid);
+    const userSnap = await getDoc(userDocRef);
+
+    let profile: UserProfile;
+    if (userSnap.exists()) {
+      profile = userSnap.data() as UserProfile;
+    } else {
+      profile = {
+        uid: cred.user.uid,
+        email: cred.user.email || '',
+        displayName: cred.user.displayName || 'Google User',
+        photoURL: cred.user.photoURL || '',
+        emailVerified: cred.user.emailVerified,
+        role: 'customer',
+        createdAt: new Date().toISOString(),
+      };
+      await setDoc(userDocRef, profile);
+    }
+    return { user: profile };
+  } catch (err: any) {
+    console.error('[Google Sign-In Error]:', err);
+    return { user: null, error: err.message || 'Google Sign-In failed.' };
+  }
+}
+
+// 4. Send Password Reset Email
+export async function resetPassword(email: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    await sendPasswordResetEmail(auth, email);
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to send password reset email.' };
+  }
+}
+
+// 5. Re-send Email Verification Link
+export async function resendVerification(): Promise<void> {
+  if (auth.currentUser) {
+    await sendEmailVerification(auth.currentUser);
+  }
+}
+
+// 6. Sign Out
+export async function logoutCustomer(): Promise<void> {
+  await firebaseSignOut(auth);
 }

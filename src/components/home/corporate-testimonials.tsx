@@ -3,44 +3,47 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, Quote, ChevronLeft, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { subscribeToReviews } from '@/lib/firebase/services/admin-db-service';
 
 export const CorporateTestimonials = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-
-  const reviews = [
+  const [reviews, setReviews] = useState<Array<{ content: string; name: string; rating: number }>>([
     {
-      content:
-        'Excellent service from the airport to my hotel in Owerri. The driver arrived before my flight landed and the vehicle was spotless.',
+      content: 'Excellent service from the airport to my hotel in Owerri. The driver arrived before my flight landed and the vehicle was spotless.',
       name: 'Chinedu A.',
       rating: 5,
     },
     {
-      content:
-        'We hired two Toyota Prado SUVs for our family event in Owerri. The drivers were punctual, polite, and knew all the roads.',
+      content: 'We hired two Toyota Prado SUVs for our family event in Owerri. The drivers were punctual, polite, and knew all the roads.',
       name: 'Adanna K.',
       rating: 5,
     },
     {
-      content:
-        'ChimJoy provides reliable corporate car hire for our visiting executives. Always professional and exceptionally on time.',
+      content: 'ChimJoy provides reliable corporate car hire for our visiting executives. Always professional and exceptionally on time.',
       name: 'Emeka O.',
       rating: 5,
     },
-    {
-      content:
-        'The vehicle we rented for our wedding convoy was in pristine condition. Highly recommended service for VIP guests.',
-      name: 'Nneka U.',
-      rating: 5,
-    },
-    {
-      content:
-        'Clean cars, smooth driving, and very transparent communication. I use ChimJoy every time I fly into Sam Mbakwe Airport.',
-      name: 'Dr. Ifeanyi M.',
-      rating: 5,
-    },
-  ];
+  ]);
 
   useEffect(() => {
+    // Listen to Firestore approved reviews
+    const unsub = subscribeToReviews((data) => {
+      const approved = data.filter((r) => r.status === 'Approved');
+      if (approved.length > 0) {
+        setReviews(
+          approved.map((r) => ({
+            content: r.comment,
+            name: r.customerName,
+            rating: r.rating || 5,
+          }))
+        );
+      }
+    });
+    return () => unsub();
+  }, []);
+
+  useEffect(() => {
+    if (reviews.length === 0) return;
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % reviews.length);
     }, 6000);

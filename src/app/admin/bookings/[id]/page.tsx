@@ -4,7 +4,7 @@ import React, { use, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Calendar, User, Phone, Mail, MapPin, Printer, ArrowLeft, CheckCircle2, MessageCircle } from 'lucide-react';
-import { BookingRequest } from '@/types';
+import { AdminBooking } from '@/types/admin';
 import { getBookings } from '@/lib/firebase/services/booking-service';
 import { formatCurrency, generateWhatsAppUrl } from '@/lib/utils';
 import { GlassCard } from '@/components/ui/glass-card';
@@ -14,7 +14,7 @@ import { LuxuryButton } from '@/components/ui/luxury-button';
 export default function DetailedBookingPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const router = useRouter();
-  const [booking, setBooking] = useState<BookingRequest | null>(null);
+  const [booking, setBooking] = useState<AdminBooking | null>(null);
 
   useEffect(() => {
     getBookings().then((list) => {
@@ -88,7 +88,7 @@ export default function DetailedBookingPage({ params }: { params: Promise<{ id: 
               dropoffLocation: booking.dropoffLocation,
               pickupDate: booking.pickupDate,
               pickupTime: booking.pickupTime,
-              vehicleName: booking.vehicleName,
+              vehicleName: booking.vehicleName || 'Standard Executive SUV',
               estimatedPrice: booking.estimatedPrice,
             })}
             target="_blank"

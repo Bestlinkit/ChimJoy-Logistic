@@ -4,9 +4,10 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Shield, Lock, Laptop, CheckCircle2, Key, AlertTriangle } from 'lucide-react';
 import { LuxuryButton } from '@/components/ui/luxury-button';
-import { MOCK_USER } from '@/lib/services/auth-service';
+import { useAuth } from '@/context/AuthContext';
 
 export default function SecurityPage() {
+  const { user } = useAuth();
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword]         = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -118,7 +119,7 @@ export default function SecurityPage() {
             </svg>
             <div>
               <h3 className="font-display font-black text-base text-[#0E1726]">Google Account</h3>
-              <p className="text-xs text-[#475569] font-medium">Connected as {MOCK_USER.email}</p>
+              <p className="text-xs text-[#475569] font-medium">Connected as {user?.email}</p>
             </div>
           </div>
           <span className="text-[10px] font-black uppercase bg-[#9BC800]/20 text-[#0B192C] px-3 py-1 rounded-full inline-block">

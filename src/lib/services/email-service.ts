@@ -272,3 +272,26 @@ export async function sendCorporateAccountApprovedEmail(to: string, companyName:
     React.createElement(CorporateAccountApprovedEmail, { companyName, contactName })
   );
 }
+
+export async function sendBookingConfirmationEmail(data: {
+  to: string;
+  customerName: string;
+  referenceCode: string;
+  serviceType: string;
+  pickupLocation: string;
+  dropoffLocation: string;
+  pickupDate: string;
+  pickupTime: string;
+  vehicleName: string;
+  estimatedPrice: number;
+}) {
+  return sendBookingReceivedEmail(
+    data.to,
+    data.customerName,
+    data.referenceCode,
+    data.serviceType,
+    data.pickupLocation,
+    `${data.pickupDate} at ${data.pickupTime}`,
+    data.estimatedPrice
+  );
+}

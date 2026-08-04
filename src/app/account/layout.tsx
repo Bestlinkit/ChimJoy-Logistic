@@ -20,11 +20,12 @@ import {
   Plus,
 } from 'lucide-react';
 import { LuxuryButton } from '@/components/ui/luxury-button';
-import { MOCK_USER, logoutUser } from '@/lib/services/auth-service';
+import { useAuth } from '@/context/AuthContext';
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
+  const { user, logout } = useAuth();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const sidebarLinks = [
@@ -38,7 +39,7 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
   ];
 
   const handleLogout = async () => {
-    await logoutUser();
+    await logout();
     router.push('/auth/login');
   };
 
@@ -53,15 +54,15 @@ export default function AccountLayout({ children }: { children: React.ReactNode 
 
           <div className="relative z-10 flex items-center gap-4 text-center sm:text-left">
             <div className="w-16 h-16 rounded-full bg-[#9BC800] text-[#0B192C] flex items-center justify-center font-display font-black text-2xl shadow-md border-2 border-white/20">
-              {MOCK_USER.firstName[0]}
+              {user?.displayName ? user.displayName.charAt(0) : 'C'}
             </div>
             <div>
               <div className="flex items-center justify-center sm:justify-start gap-2">
                 <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-white">
-                  Good Afternoon, {MOCK_USER.firstName}.
+                  Welcome, {user?.displayName || 'Valued Client'}.
                 </h1>
                 <span className="text-[10px] font-black uppercase bg-[#9BC800] text-[#0B192C] px-2.5 py-0.5 rounded-full">
-                  VIP Client
+                  Verified Client
                 </span>
               </div>
               <p className="text-xs text-slate-300 font-medium mt-1">

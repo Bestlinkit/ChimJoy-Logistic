@@ -7,14 +7,21 @@ import { ArrowRight, Users, Briefcase, Car, ShieldCheck } from 'lucide-react';
 import { LuxuryButton } from '@/components/ui/luxury-button';
 import { MOCK_VEHICLES } from '@/lib/mock-data';
 import { formatCurrency } from '@/lib/utils';
-import { getVehicles } from '@/lib/firebase/services/fleet-service';
+import { subscribeToPublicFleet } from '@/lib/firebase/services/fleet-service';
+import { Vehicle } from '@/types';
 
 export default function FleetPage() {
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('all');
 
+  React.useEffect(() => {
+    const unsub = subscribeToPublicFleet((data) => setVehicles(data));
+    return () => unsub();
+  }, []);
+
   const filtered = activeCategory === 'all'
-    ? MOCK_VEHICLES
-    : MOCK_VEHICLES.filter((v) => v.category === activeCategory || v.categoryId === activeCategory);
+    ? vehicles
+    : vehicles.filter((v) => v.categoryName === activeCategory || v.categoryId === activeCategory);
 
   return (
     <main className="min-h-screen bg-white text-[#0E1726]">
