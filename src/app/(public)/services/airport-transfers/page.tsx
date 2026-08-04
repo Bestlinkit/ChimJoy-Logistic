@@ -37,13 +37,17 @@ export default function AirportTransfersPage() {
             loop
             muted
             playsInline
-            preload="metadata"
+            preload="auto"
+            poster="/images/sam_mbakwe_vip_airport_transfer_1785760768280.png"
             className="w-full h-full object-cover filter contrast-110 brightness-90 scale-105"
           >
+            <source src="/videos/hero-video-opt.mp4" type="video/mp4" />
             <source src="/videos/hero-video.mp4" type="video/mp4" />
             <img
-              src="/images/images (5).jpg"
+              src="/images/sam_mbakwe_vip_airport_transfer_1785760768280.png"
               alt="Sam Mbakwe Airport VIP Transfers"
+              loading="eager"
+              decoding="async"
               className="w-full h-full object-cover opacity-35"
             />
           </video>

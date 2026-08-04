@@ -145,13 +145,17 @@ function RideBookingContent() {
             loop
             muted
             playsInline
-            preload="metadata"
+            preload="auto"
+            poster="/images/nigerian_driver_alone_1785747001406.png"
             className="w-full h-full object-cover filter contrast-110 brightness-90 scale-105"
           >
+            <source src="/videos/hero-video-opt.mp4" type="video/mp4" />
             <source src="/videos/hero-video.mp4" type="video/mp4" />
             <img
-              src="/images/images (5).jpg"
+              src="/images/nigerian_driver_alone_1785747001406.png"
               alt="ChimJoy VIP fleet"
+              loading="eager"
+              decoding="async"
               className="w-full h-full object-cover opacity-30"
             />
           </video>
