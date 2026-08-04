@@ -63,8 +63,8 @@ export const CorporateStory = () => {
           >
             <div className="relative h-[400px] w-full rounded-3xl overflow-hidden shadow-corporate border border-[#0B192C]/15 group">
               <img
-                src="/images/nigerian_driver_alone_1785747001406.png"
-                alt="Professional Nigerian Chchauffeur Driver smiling at the wheel in Owerri"
+                src="/images/images (7).jpg"
+                alt="Professional Driver at the wheel in Owerri"
                 loading="lazy"
                 decoding="async"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"

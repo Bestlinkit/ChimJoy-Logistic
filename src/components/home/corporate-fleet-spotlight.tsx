@@ -65,7 +65,7 @@ export const CorporateFleetSpotlight = () => {
           >
             <div className="relative h-[380px] w-full rounded-3xl overflow-hidden border border-white/15 shadow-2xl group">
               <img
-                src="/images/images (5).jpg"
+                src="/images/suv_prado_2.jpg"
                 alt="Toyota Land Cruiser Prado TX-L"
                 loading="lazy"
                 decoding="async"

@@ -72,8 +72,8 @@ export const CorporateAirportSection = () => {
               className="relative h-[420px] w-full rounded-3xl overflow-hidden shadow-2xl border-2 border-white/20 hover:border-[#9BC800] hover:shadow-[0_0_30px_rgba(155,200,0,0.5)] transition-all duration-300 group"
             >
               <img
-                src="/images/owerri_rockview_city_skyline.jpg"
-                alt="Owerri City Center & Sam Mbakwe Airport Transfers"
+                src="/images/airport_1.jpg"
+                alt="Sam Mbakwe International Cargo Airport QOW Arrival Transfers"
                 loading="lazy"
                 decoding="async"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"

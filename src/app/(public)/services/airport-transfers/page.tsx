@@ -38,13 +38,13 @@ export default function AirportTransfersPage() {
             muted
             playsInline
             preload="auto"
-            poster="/images/sam_mbakwe_vip_airport_transfer_1785760768280.png"
+            poster="/images/airport_1.jpg"
             className="w-full h-full object-cover filter contrast-110 brightness-90 scale-105"
           >
             <source src="/videos/hero-video-opt.mp4" type="video/mp4" />
             <source src="/videos/hero-video.mp4" type="video/mp4" />
             <img
-              src="/images/sam_mbakwe_vip_airport_transfer_1785760768280.png"
+              src="/images/airport_1.jpg"
               alt="Sam Mbakwe Airport VIP Transfers"
               loading="eager"
               decoding="async"

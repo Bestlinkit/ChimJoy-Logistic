@@ -85,8 +85,8 @@ export const CorporateLogisticsSection = () => {
               className="relative h-[440px] w-full rounded-3xl overflow-hidden shadow-corporate border border-[#0B192C]/15 hover:border-[#9BC800] hover:shadow-[0_0_30px_rgba(155,200,0,0.4)] transition-all duration-300 group"
             >
               <img
-                src="/images/enhanced_chimjoy_logistics_van_1785760697298.png"
-                alt="ChimJoy Logistics Branded Courier Delivery Van in Owerri"
+                src="/images/logistics_truck_2.png"
+                alt="ChimJoy Logistics Branded Courier Delivery Vehicle in Owerri"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#0B192C]/85 via-transparent to-transparent" />
