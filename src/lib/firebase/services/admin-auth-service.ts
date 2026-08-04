@@ -3,12 +3,9 @@ import {
   collection,
   doc,
   getDoc,
-  getDocs,
   setDoc,
   updateDoc,
-  deleteDoc,
   onSnapshot,
-  addDoc,
 } from 'firebase/firestore';
 import {
   signInWithEmailAndPassword,
@@ -16,96 +13,6 @@ import {
   signOut,
 } from 'firebase/auth';
 import { AdminRole, AdminUser } from '@/types/admin';
-import { MOCK_VEHICLES } from '@/lib/mock-data';
-
-// Helper function to auto-seed initial database collections if Firestore is empty
-export async function seedFirestoreCollections() {
-  try {
-    // 1. Seed Vehicles
-    const vehiclesRef = collection(db, 'vehicles');
-    const vehSnap = await getDocs(vehiclesRef);
-    if (vehSnap.empty) {
-      for (const v of MOCK_VEHICLES) {
-        await setDoc(doc(db, 'vehicles', v.id), v);
-      }
-      console.log('✅ Seeded vehicles collection');
-    }
-
-    // 2. Seed Drivers
-    const driversRef = collection(db, 'drivers');
-    const drvSnap = await getDocs(driversRef);
-    if (drvSnap.empty) {
-      const initialDrivers = [
-        {
-          id: 'drv-01',
-          name: 'Chinedu Okeke',
-          phone: '+234 807 788 0262',
-          email: 'chinedu.driver@chimjoy.ng',
-          licenseNumber: 'IMO-DRV-90821',
-          licenseExpiry: '2028-12-31',
-          status: 'Available',
-          rating: 5.0,
-          completedTripsCount: 142,
-          employmentStatus: 'Full Time',
-          emergencyContact: '+234 803 111 2233',
-          createdAt: new Date().toISOString(),
-        },
-        {
-          id: 'drv-02',
-          name: 'Emeka Nnamdi',
-          phone: '+234 803 445 6677',
-          email: 'emeka.driver@chimjoy.ng',
-          licenseNumber: 'IMO-DRV-77612',
-          licenseExpiry: '2027-09-30',
-          status: 'On Trip',
-          rating: 4.9,
-          completedTripsCount: 98,
-          employmentStatus: 'Full Time',
-          emergencyContact: '+234 802 333 4455',
-          createdAt: new Date().toISOString(),
-        },
-      ];
-      for (const d of initialDrivers) {
-        await setDoc(doc(db, 'drivers', d.id), d);
-      }
-      console.log('✅ Seeded drivers collection');
-    }
-
-    // 3. Seed Reviews
-    const reviewsRef = collection(db, 'reviews');
-    const revSnap = await getDocs(reviewsRef);
-    if (revSnap.empty) {
-      const initialReviews = [
-        {
-          id: 'rev-01',
-          customerName: 'Chinedu A.',
-          serviceType: 'Sam Mbakwe Airport Transfer',
-          rating: 5,
-          comment: 'Excellent service from the airport to my hotel in Owerri. The driver arrived before my flight landed.',
-          status: 'Approved',
-          isFeatured: true,
-          createdAt: new Date().toISOString(),
-        },
-        {
-          id: 'rev-02',
-          customerName: 'Adanna K.',
-          serviceType: 'Car Hire (Prado SUV)',
-          rating: 5,
-          comment: 'We hired two Toyota Prado SUVs for our family event in Owerri. Professional and punctual.',
-          status: 'Approved',
-          isFeatured: true,
-          createdAt: new Date().toISOString(),
-        },
-      ];
-      for (const r of initialReviews) {
-        await setDoc(doc(db, 'reviews', r.id), r);
-      }
-      console.log('✅ Seeded reviews collection');
-    }
-  } catch (err) {
-    console.error('Firestore seeding warning:', err);
-  }
-}
 
 export async function loginAdmin(email: string, pass: string): Promise<{ user: AdminUser | null; error?: string }> {
   try {
@@ -161,9 +68,6 @@ export async function loginAdmin(email: string, pass: string): Promise<{ user: A
     } catch (docErr: any) {
       console.warn('[Admin Login Offline Warning]:', docErr);
     }
-
-    // Trigger background collection seeding in Firestore
-    seedFirestoreCollections().catch(() => {});
 
     return { user: adminData };
   } catch (err: any) {
