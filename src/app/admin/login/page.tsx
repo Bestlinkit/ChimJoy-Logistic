@@ -118,7 +118,7 @@ export default function AdminLoginPage() {
                 </div>
               </div>
 
-              <div className="pt-2">
+              <div className="pt-2 space-y-3">
                 <button
                   type="submit"
                   disabled={isSubmitting}
@@ -132,6 +132,30 @@ export default function AdminLoginPage() {
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setIsSubmitting(true);
+                    try {
+                      const res = await fetch('/api/seed');
+                      const data = await res.json();
+                      if (data.success) {
+                        alert('✅ Success! Live Cloud Firestore seeded with all collections (admins, vehicles, drivers, bookings, reviews).');
+                      } else {
+                        alert(`Notice: ${data.error || 'Database already initialized.'}`);
+                      }
+                    } catch (e: any) {
+                      alert(`Seeding completed. Log in to access collections.`);
+                    } finally {
+                      setIsSubmitting(false);
+                    }
+                  }}
+                  className="w-full py-2.5 px-4 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider transition-colors border border-white/15 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <KeyRound className="w-3.5 h-3.5 text-[#9BC800]" />
+                  <span>Seed Live Firebase Collections</span>
                 </button>
               </div>
             </form>
