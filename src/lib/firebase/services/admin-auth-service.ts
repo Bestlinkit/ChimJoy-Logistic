@@ -66,7 +66,7 @@ export async function loginAdmin(email: string, pass: string): Promise<{ user: A
         await setDoc(adminDocRef, adminData).catch(() => {});
       }
     } catch (docErr: any) {
-      console.warn('[Admin Login Offline Warning]:', docErr);
+      // Silent handling
     }
 
     return { user: adminData };

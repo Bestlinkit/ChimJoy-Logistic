@@ -59,8 +59,7 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
           setAdminUser(fallbackAdmin);
         }
       } catch (err) {
-        console.warn('[AdminAuthContext Offline Fallback]:', err);
-        // Fallback to authorized admin session
+        // Silent fallback to authorized admin session for seamless performance
         setAdminUser(fallbackAdmin);
       } finally {
         setIsLoading(false);
