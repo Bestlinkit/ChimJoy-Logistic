@@ -127,13 +127,13 @@ export async function loginAdmin(email: string, pass: string): Promise<{ user: A
           try {
             cred = await createUserWithEmailAndPassword(auth, email, pass);
           } catch (createErr: any) {
-            return { user: null, error: createErr.message || 'Invalid administrator password.' };
+            return { user: null, error: `[${createErr.code || 'AUTH_ERROR'}] ${createErr.message}` };
           }
         } else {
-          return { user: null, error: 'Invalid administrator credentials.' };
+          return { user: null, error: `[${authErr.code || 'UNAUTHORIZED'}] ${authErr.message}` };
         }
       } else {
-        throw authErr;
+        return { user: null, error: `[${authErr.code || 'FIREBASE_ERROR'}] ${authErr.message}` };
       }
     }
 
@@ -158,7 +158,7 @@ export async function loginAdmin(email: string, pass: string): Promise<{ user: A
       } else {
         await setDoc(adminDocRef, adminData).catch(() => {});
       }
-    } catch (docErr) {
+    } catch (docErr: any) {
       console.warn('[Admin Login Offline Warning]:', docErr);
     }
 
@@ -168,7 +168,7 @@ export async function loginAdmin(email: string, pass: string): Promise<{ user: A
     return { user: adminData };
   } catch (err: any) {
     console.error('[Admin Login Error]:', err);
-    return { user: null, error: err.message || 'Invalid administrator credentials.' };
+    return { user: null, error: `[${err.code || 'ERROR'}] ${err.message || 'Authentication error.'}` };
   }
 }
 
