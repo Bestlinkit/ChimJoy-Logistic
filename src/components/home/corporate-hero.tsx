@@ -36,8 +36,16 @@ export const CorporateHero = () => {
 
   return (
     <section className="relative min-h-[580px] h-[75vh] w-full bg-[#0B192C] text-white flex flex-col justify-between overflow-hidden pt-24">
-      {/* High Contrast Video Backdrop Layer */}
+      {/* High Contrast Media Backdrop Layer */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        {/* High Resolution Image Backdrop (Instant Mobile Fallback) */}
+        <img
+          src="/images/nigerian_driver_alone_1785747001406.png"
+          alt="ChimJoy Executive Chauffeur"
+          className="absolute inset-0 w-full h-full object-cover filter contrast-110 brightness-90 scale-105 opacity-80"
+        />
+
+        {/* Universal Video Player */}
         <video
           autoPlay
           loop
@@ -45,17 +53,10 @@ export const CorporateHero = () => {
           playsInline
           preload="auto"
           poster="/images/nigerian_driver_alone_1785747001406.png"
-          className="w-full h-full object-cover filter contrast-110 brightness-90 scale-105"
+          className="absolute inset-0 w-full h-full object-cover filter contrast-110 brightness-90 scale-105"
         >
-          <source src="/videos/hero-video-opt.mp4" type="video/mp4" />
           <source src="/videos/hero-video.mp4" type="video/mp4" />
-          <img
-            src="/images/nigerian_driver_alone_1785747001406.png"
-            alt="ChimJoy Executive Fleet"
-            loading="eager"
-            decoding="async"
-            className="w-full h-full object-cover opacity-35"
-          />
+          <source src="/videos/hero-video-opt.mp4" type="video/mp4" />
         </video>
         <div className="absolute inset-0 bg-gradient-to-r from-[#0B192C] via-[#0B192C]/85 to-[#0B192C]/50" />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0B192C] via-transparent to-[#0B192C]/80" />

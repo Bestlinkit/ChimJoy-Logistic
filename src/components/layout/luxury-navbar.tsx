@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Phone, Mail, Menu, X, ArrowRight } from 'lucide-react';
 import { LuxuryButton } from '@/components/ui/luxury-button';
@@ -11,6 +11,7 @@ export const LuxuryNavbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,6 +30,11 @@ export const LuxuryNavbar = () => {
     { name: 'Logistics', href: '/book/ride' },
     { name: 'Contact Us', href: '/contact' },
   ];
+
+  const handleMobileNavigate = (href: string) => {
+    setIsMobileMenuOpen(false);
+    router.push(href);
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50">
@@ -57,7 +63,7 @@ export const LuxuryNavbar = () => {
         </div>
       </div>
 
-      {/* Main Header Navbar - COMPACT HEIGHT WHITE NAVBAR WITH BIG TIGHTLY-CROPPED LOGO & CLEAR MENU ITEMS */}
+      {/* Main Header Navbar */}
       <nav
         className={`w-full transition-all duration-300 ${
           isScrolled
@@ -67,7 +73,6 @@ export const LuxuryNavbar = () => {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
-            {/* Tightly Cropped Logo Image - Scales up big & clear without white margin box */}
             <Link href="/" className="flex items-center gap-2 group py-0.5">
               <img
                 src="/images/logo.png"
@@ -76,7 +81,7 @@ export const LuxuryNavbar = () => {
               />
             </Link>
 
-            {/* Desktop Navigation Links - Fully visible on lg & xl screens */}
+            {/* Desktop Navigation Links */}
             <div className="hidden lg:flex items-center gap-1 xl:gap-2">
               {navLinks.map((link, idx) => {
                 const isActive = pathname === link.href;
@@ -150,43 +155,43 @@ export const LuxuryNavbar = () => {
           >
             <div className="px-5 py-6 space-y-2">
               {navLinks.map((link, idx) => (
-                <Link
+                <button
                   key={idx}
-                  href={link.href}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`block px-4 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-colors ${
+                  type="button"
+                  onClick={() => handleMobileNavigate(link.href)}
+                  className={`w-full text-left block px-4 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-colors ${
                     pathname === link.href ? 'bg-[#9BC800] text-[#0B192C]' : 'text-[#0B192C] hover:bg-[#F4F6F9]'
                   }`}
                 >
                   {link.name}
-                </Link>
+                </button>
               ))}
 
               <div className="pt-4 border-t border-slate-200 space-y-3">
-                <Link
-                  href="/account"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block text-center text-xs font-extrabold text-[#003366] hover:text-[#9BC800] py-1 transition-colors"
+                <button
+                  type="button"
+                  onClick={() => handleMobileNavigate('/account')}
+                  className="w-full text-center block text-xs font-extrabold text-[#003366] hover:text-[#9BC800] py-1 transition-colors"
                 >
                   My Account
-                </Link>
+                </button>
                 <div className="grid grid-cols-2 gap-3">
-                  <Link href="/auth/login" onClick={() => setIsMobileMenuOpen(false)}>
+                  <button type="button" onClick={() => handleMobileNavigate('/auth/login')} className="w-full">
                     <LuxuryButton variant="dark" size="sm" className="w-full justify-center">
                       Sign In
                     </LuxuryButton>
-                  </Link>
-                  <Link href="/auth/register" onClick={() => setIsMobileMenuOpen(false)}>
+                  </button>
+                  <button type="button" onClick={() => handleMobileNavigate('/auth/register')} className="w-full">
                     <LuxuryButton variant="navy" size="sm" className="w-full justify-center">
                       Register
                     </LuxuryButton>
-                  </Link>
+                  </button>
                 </div>
-                <Link href="/book/ride" onClick={() => setIsMobileMenuOpen(false)}>
+                <button type="button" onClick={() => handleMobileNavigate('/book/ride')} className="w-full">
                   <LuxuryButton variant="lemon" size="lg" className="w-full justify-center">
                     Book a Ride
                   </LuxuryButton>
-                </Link>
+                </button>
               </div>
             </div>
           </motion.div>
