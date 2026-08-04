@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -25,7 +25,7 @@ import {
   ArrowLeft,
 } from 'lucide-react';
 import { LuxuryButton } from '@/components/ui/luxury-button';
-import { MOCK_VEHICLES } from '@/lib/mock-data';
+import { subscribeToPublicFleet } from '@/lib/firebase/services/fleet-service';
 import { createBookingRequest } from '@/lib/firebase/services/booking-service';
 import { formatCurrency, generateBookingRef, generateWhatsAppUrl } from '@/lib/utils';
 import { Vehicle } from '@/types';
@@ -44,6 +44,18 @@ const SERVICE_TYPES = [
 
 function RideBookingContent() {
   const router = useRouter();
+
+  const [fleet, setFleet] = useState<Vehicle[]>([]);
+
+  useEffect(() => {
+    const unsub = subscribeToPublicFleet((data) => {
+      setFleet(data);
+      if (data.length > 0 && !selectedVehicle) {
+        setSelectedVehicle(data[0]);
+      }
+    });
+    return () => unsub();
+  }, []);
 
   // Form state
   const [serviceType, setServiceType]         = useState('airport-pickup');
@@ -73,8 +85,8 @@ function RideBookingContent() {
   const showFlightField = selectedService?.showFlight ?? false;
 
   const filteredVehicles = vehicleCategory
-    ? MOCK_VEHICLES.filter(v => v.categoryName === vehicleCategory)
-    : MOCK_VEHICLES;
+    ? fleet.filter(v => v.categoryName === vehicleCategory)
+    : fleet;
 
   const handleFindVehicles = (e: React.FormEvent) => {
     e.preventDefault();

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,7 +26,7 @@ import {
   Shield,
 } from 'lucide-react';
 import { LuxuryButton } from '@/components/ui/luxury-button';
-import { MOCK_VEHICLES } from '@/lib/mock-data';
+import { subscribeToPublicFleet } from '@/lib/firebase/services/fleet-service';
 import { createBookingRequest } from '@/lib/firebase/services/booking-service';
 import { formatCurrency, generateBookingRef, generateWhatsAppUrl } from '@/lib/utils';
 import { Vehicle } from '@/types';
@@ -43,6 +43,18 @@ const PURPOSE_OPTIONS = [
 function CarHireContent() {
   const router = useRouter();
 
+  const [fleet, setFleet] = useState<Vehicle[]>([]);
+
+  useEffect(() => {
+    const unsub = subscribeToPublicFleet((data) => {
+      setFleet(data);
+      if (data.length > 0 && !selectedVehicle) {
+        setSelectedVehicle(data[0]);
+      }
+    });
+    return () => unsub();
+  }, []);
+
   // Form state
   const [hireType, setHireType]               = useState<'chauffeur' | 'self'>('chauffeur');
   const [startDate, setStartDate]             = useState('');
@@ -53,15 +65,14 @@ function CarHireContent() {
   const [vehicleCategory, setVehicleCategory] = useState('');
   const [additionalRequests, setAdditionalRequests] = useState('');
   const [driversLicense, setDriversLicense]   = useState('');
-
-  // Vehicle selection
-  const [selectedVehicle, setSelectedVehicle]   = useState<Vehicle | null>(null);
-  const [showContactForm, setShowContactForm]   = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
 
   // Customer + submission
   const [customerName, setCustomerName]   = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
+  
+  const [showContactForm, setShowContactForm]   = useState(false);
   const [isSubmitting, setIsSubmitting]   = useState(false);
   const [isSuccess, setIsSuccess]         = useState(false);
   const [refCode, setRefCode]             = useState('');
@@ -72,8 +83,8 @@ function CarHireContent() {
     : 1;
 
   const filteredVehicles = vehicleCategory
-    ? MOCK_VEHICLES.filter(v => v.categoryName === vehicleCategory)
-    : MOCK_VEHICLES;
+    ? fleet.filter(v => v.categoryName === vehicleCategory)
+    : fleet;
 
   const handleShowVehicles = (e: React.FormEvent) => {
     e.preventDefault();
