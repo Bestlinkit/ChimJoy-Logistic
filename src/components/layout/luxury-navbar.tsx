@@ -126,10 +126,12 @@ export const LuxuryNavbar = () => {
                 </LuxuryButton>
               </Link>
               <button
-                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                className="p-2 rounded-lg bg-[#0B192C] text-white"
+                type="button"
+                onClick={() => setIsMobileMenuOpen((prev) => !prev)}
+                aria-label="Toggle navigation menu"
+                className="p-2.5 rounded-xl bg-[#0B192C] text-white hover:bg-[#003366] transition-colors focus:outline-none cursor-pointer"
               >
-                {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+                {isMobileMenuOpen ? <X className="w-6 h-6 text-[#9BC800]" /> : <Menu className="w-6 h-6 text-white" />}
               </button>
             </div>
           </div>
@@ -143,29 +145,34 @@ export const LuxuryNavbar = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden bg-white border-b border-slate-200 shadow-2xl overflow-hidden text-[#0B192C]"
+            transition={{ duration: 0.25 }}
+            className="lg:hidden bg-white border-b-2 border-[#0B192C]/10 shadow-2xl overflow-hidden text-[#0E1726]"
           >
-            <div className="px-5 py-5 space-y-2">
+            <div className="px-5 py-6 space-y-2">
               {navLinks.map((link, idx) => (
                 <Link
                   key={idx}
                   href={link.href}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`block px-4 py-2.5 rounded-xl text-xs font-extrabold uppercase tracking-wider ${
-                    pathname === link.href ? 'bg-[#9BC800] text-[#0B192C]' : 'text-[#0B192C] hover:bg-slate-100'
+                  className={`block px-4 py-3 rounded-xl text-xs font-black uppercase tracking-wider transition-colors ${
+                    pathname === link.href ? 'bg-[#9BC800] text-[#0B192C]' : 'text-[#0B192C] hover:bg-[#F4F6F9]'
                   }`}
                 >
                   {link.name}
                 </Link>
               ))}
 
-              <div className="pt-3 border-t border-slate-200 space-y-2">
-                <Link href="/account" onClick={() => setIsMobileMenuOpen(false)} className="block text-center text-xs font-black text-[#0B192C] py-2">
-                  Client Portal (/account)
+              <div className="pt-4 border-t border-slate-200 space-y-3">
+                <Link
+                  href="/account"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block text-center text-xs font-extrabold text-[#003366] hover:text-[#9BC800] py-1 transition-colors"
+                >
+                  My Account
                 </Link>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-2 gap-3">
                   <Link href="/auth/login" onClick={() => setIsMobileMenuOpen(false)}>
-                    <LuxuryButton variant="outline" size="sm" className="w-full justify-center">
+                    <LuxuryButton variant="dark" size="sm" className="w-full justify-center">
                       Sign In
                     </LuxuryButton>
                   </Link>
@@ -176,7 +183,7 @@ export const LuxuryNavbar = () => {
                   </Link>
                 </div>
                 <Link href="/book/ride" onClick={() => setIsMobileMenuOpen(false)}>
-                  <LuxuryButton variant="lemon" size="md" className="w-full justify-center">
+                  <LuxuryButton variant="lemon" size="lg" className="w-full justify-center">
                     Book a Ride
                   </LuxuryButton>
                 </Link>
