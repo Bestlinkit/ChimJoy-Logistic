@@ -94,7 +94,7 @@ export default function AdminLoginPage() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="admin@chimjoylogistics.com.ng"
+                    placeholder="Enter your administrator email"
                     className="w-full bg-transparent font-medium text-white text-xs focus:outline-none placeholder:text-slate-500"
                   />
                 </div>

@@ -2,9 +2,12 @@
 
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Phone, Mail, MapPin, Shield } from 'lucide-react';
 
 export const PremiumFooter = () => {
+  const pathname = usePathname();
+  if (pathname?.startsWith('/admin')) return null;
   return (
     <footer className="bg-[#0B192C] text-white border-t border-white/10 pt-14 pb-10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10">

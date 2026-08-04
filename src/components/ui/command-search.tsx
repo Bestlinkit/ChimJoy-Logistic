@@ -1,15 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Search, Car, Calendar, MapPin, Users, HelpCircle, X, ArrowRight } from 'lucide-react';
 import { ModalDrawer } from '@/components/ui/modal-drawer';
 import { MOCK_VEHICLES, MOCK_BOOKINGS, MOCK_FAQS } from '@/lib/mock-data';
 
 export const CommandSearch = () => {
   const router = useRouter();
+  const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
+
+  if (pathname?.startsWith('/admin')) return null;
 
   // Keyboard shortcut listener (Cmd/Ctrl + K)
   useEffect(() => {

@@ -13,6 +13,8 @@ export const LuxuryNavbar = () => {
   const pathname = usePathname();
   const router = useRouter();
 
+  if (pathname?.startsWith('/admin')) return null;
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 15);
