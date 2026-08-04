@@ -1,65 +1,95 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
-    function isAuthenticated() {
+    // True when the request is made by an authenticated user.
+    function isSignedIn() {
       return request.auth != null;
     }
 
-    // Public read/write permissions for production client operation
+    // True when the signed-in user is an admin.
+    // Bootstraps safely: if no admins doc exists yet, returns false.
+    function isAdmin() {
+      return isSignedIn()
+             && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+             && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'Super Admin';
+    }
+
+    // users/{uid} – owner-only access
     match /users/{userId} {
-      allow read, write, create, update: if true;
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
     }
 
+    // admins/{adminId} – any authenticated user can read/write their own
+    // doc (required so the first admin login can create the document).
     match /admins/{adminId} {
-      allow read, write, create, update: if true;
+      allow read: if isSignedIn() && request.auth.uid == adminId;
+      allow write: if isSignedIn() && request.auth.uid == adminId;
     }
 
+    // vehicles (public fleet) – public read, admin write
     match /vehicles/{vehicleId} {
-      allow read, write, create, update, delete: if true;
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
     }
 
-    match /fleet/{vehicleId} {
-      allow read, write, create, update, delete: if true;
-    }
-
-    match /drivers/{driverId} {
-      allow read, write, create, update, delete: if true;
-    }
-
+    // bookingRequests – users create their own, admins manage all
     match /bookingRequests/{bookingId} {
-      allow read, write, create, update, delete: if true;
+      allow create: if isSignedIn()
+                    && request.resource.data.uid == request.auth.uid;
+      allow read, update: if
+            (isSignedIn() && resource.data.uid == request.auth.uid)
+            || isAdmin();
+      allow delete: if isAdmin();
     }
 
+    // carHireBookings – same rules as bookingRequests
     match /carHireBookings/{bookingId} {
-      allow read, write, create, update, delete: if true;
+      allow create: if isSignedIn()
+                    && request.resource.data.uid == request.auth.uid;
+      allow read, update: if
+            (isSignedIn() && resource.data.uid == request.auth.uid)
+            || isAdmin();
+      allow delete: if isAdmin();
     }
 
+    // admin_notifications – admin reads, any signed-in user can create
+    match /admin_notifications/{notifId} {
+      allow create: if isSignedIn();
+      allow read, update, delete: if isAdmin();
+    }
+
+    // drivers – admin only
+    match /drivers/{driverId} {
+      allow read, write: if isAdmin();
+    }
+
+    // customers – admin only
+    match /customers/{customerId} {
+      allow read, write: if isAdmin();
+    }
+
+    // contact_messages – public create, admin manages
+    match /contact_messages/{msgId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // reviews – signed-in create, public read, admin manages
     match /reviews/{reviewId} {
-      allow read, write, create, update, delete: if true;
+      allow create: if isSignedIn();
+      allow read: if true;
+      allow update, delete: if isAdmin();
     }
 
-    match /messages/{messageId} {
-      allow read, write, create, update, delete: if true;
-    }
-
-    match /admin_notifications/{notificationId} {
-      allow read, write, create, update, delete: if true;
-    }
-
+    // audit_logs – admin only
     match /audit_logs/{logId} {
-      allow read, write, create, update, delete: if true;
+      allow read, write: if isAdmin();
     }
 
-    match /settings/{settingId} {
-      allow read, write, create, update, delete: if true;
-    }
-
-    // Default match-all rule for production operations
+    // Deny everything else
     match /{document=**} {
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }

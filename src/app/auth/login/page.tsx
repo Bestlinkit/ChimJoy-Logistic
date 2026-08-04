@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Lock, Mail, ArrowRight } from 'lucide-react';
 import { LuxuryButton } from '@/components/ui/luxury-button';
-import { loginUser } from '@/lib/services/auth-service';
+import { loginUser, signInWithGoogle } from '@/lib/services/auth-service';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -14,14 +14,31 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    await loginUser(email);
+    setError('');
+    const { user, error: authError } = await loginUser(email, password);
     setIsLoading(false);
-    // Redirect to verify-login OTP for security verification
-    router.push(`/auth/verify-login?email=${encodeURIComponent(email)}`);
+    if (authError || !user) {
+      setError(authError || 'Login failed. Please check your credentials.');
+      return;
+    }
+    router.push('/account');
+  };
+
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    setError('');
+    const { user, error: authError } = await signInWithGoogle();
+    setIsLoading(false);
+    if (authError || !user) {
+      setError(authError || 'Google Sign-In failed.');
+      return;
+    }
+    router.push('/account');
   };
 
   return (
@@ -127,7 +144,7 @@ export default function LoginPage() {
                 {/* Google OAuth Button */}
                 <button
                   type="button"
-                  onClick={() => handleLogin({ preventDefault: () => {} } as any)}
+                  onClick={handleGoogleLogin}
                   className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded-full border border-[#0B192C]/15 bg-white text-xs font-bold text-[#0E1726] hover:bg-[#F8FAFC] transition-all duration-200 shadow-sm cursor-pointer"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24">
@@ -139,6 +156,10 @@ export default function LoginPage() {
                   <span>Continue with Google</span>
                 </button>
               </div>
+              {/* Error Message */}
+              {error && (
+                <p className="text-xs font-semibold text-red-600 text-center pt-1">{error}</p>
+              )}
             </form>
 
             <div className="border-t border-[#0B192C]/10 pt-4 text-center text-xs text-[#475569] font-medium">

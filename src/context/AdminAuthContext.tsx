@@ -39,31 +39,21 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         return;
       }
 
-      const userEmail = firebaseUser.email || 'office@chimjoylogisticservices.com.ng';
-      const fallbackAdmin: AdminUser = {
-        uid: firebaseUser.uid,
-        email: userEmail,
-        name: firebaseUser.displayName || 'Executive Administrator',
-        role: 'Super Admin',
-        status: 'Active',
-        createdAt: new Date().toISOString(),
-      };
-
-      try {
-        const adminDocRef = doc(db, 'admins', firebaseUser.uid);
-        const adminSnap = await getDoc(adminDocRef);
-
-        if (adminSnap.exists()) {
-          setAdminUser(adminSnap.data() as AdminUser);
-        } else {
-          setAdminUser(fallbackAdmin);
+      const adminDocRef = doc(db, 'admins', firebaseUser.uid);
+        try {
+          const adminSnap = await getDoc(adminDocRef);
+          if (adminSnap.exists()) {
+            setAdminUser(adminSnap.data() as AdminUser);
+          } else {
+            // No admin document – treat as unauthenticated
+            setAdminUser(null);
+          }
+        } catch (err) {
+          console.error('[AdminAuthContext] Firestore error while loading admin document:', err);
+          setAdminUser(null);
+        } finally {
+          setIsLoading(false);
         }
-      } catch (err) {
-        // Silent fallback to authorized admin session for seamless performance
-        setAdminUser(fallbackAdmin);
-      } finally {
-        setIsLoading(false);
-      }
     });
 
     return () => unsubscribe();

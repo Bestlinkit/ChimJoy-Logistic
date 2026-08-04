@@ -43,23 +43,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Subscribe to customer Firestore profile
       const userRef = doc(db, 'users', fbUser.uid);
-      const unsubProfile = onSnapshot(userRef, (snap) => {
-        if (snap.exists()) {
-          const profileData = snap.data() as UserProfile;
-          profileData.emailVerified = fbUser.emailVerified;
-          setUser(profileData);
-        } else {
-          setUser({
-            uid: fbUser.uid,
-            email: fbUser.email || '',
-            displayName: fbUser.displayName || 'Customer',
-            emailVerified: fbUser.emailVerified,
-            role: 'customer',
-            createdAt: new Date().toISOString(),
-          });
+      const unsubProfile = onSnapshot(
+        userRef,
+        (snap) => {
+          if (snap.exists()) {
+            const profileData = snap.data() as UserProfile;
+            profileData.emailVerified = fbUser.emailVerified;
+            setUser(profileData);
+          } else {
+            // Document doesn't exist yet – not an error, will be created on next write
+            setUser(null);
+          }
+          setIsLoading(false);
+        },
+        (err) => {
+          console.error('[AuthContext] Firestore onSnapshot error:', err);
+          setUser(null);
+          setIsLoading(false);
         }
-        setIsLoading(false);
-      });
+      );
 
       return () => unsubProfile();
     });

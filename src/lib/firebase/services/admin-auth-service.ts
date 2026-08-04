@@ -63,10 +63,11 @@ export async function loginAdmin(email: string, pass: string): Promise<{ user: A
       if (adminSnap.exists()) {
         adminData = adminSnap.data() as AdminUser;
       } else {
-        await setDoc(adminDocRef, adminData).catch(() => {});
+        await setDoc(adminDocRef, adminData);
       }
     } catch (docErr: any) {
-      // Silent handling
+      console.error('[admin-auth-service] Firestore error while handling admin doc:', docErr);
+      throw docErr;
     }
 
     return { user: adminData };
