@@ -46,6 +46,7 @@ export async function loginAdmin(email: string, pass: string): Promise<{ user: A
 
     const uid = cred.user.uid;
     const adminDocRef = doc(db, 'admins', uid);
+    const adminUserDocRef = doc(db, 'admin_users', uid);
 
     let adminData: AdminUser = {
       uid,
@@ -59,15 +60,25 @@ export async function loginAdmin(email: string, pass: string): Promise<{ user: A
     };
 
     try {
-      const adminSnap = await getDoc(adminDocRef);
-      if (adminSnap.exists()) {
+      const [adminSnap, adminUserSnap] = await Promise.all([
+        getDoc(adminDocRef).catch(() => null),
+        getDoc(adminUserDocRef).catch(() => null),
+      ]);
+
+      if (adminSnap && adminSnap.exists()) {
         adminData = adminSnap.data() as AdminUser;
+      } else if (adminUserSnap && adminUserSnap.exists()) {
+        adminData = adminUserSnap.data() as AdminUser;
       } else {
-        await setDoc(adminDocRef, adminData);
+        // Create in both locations for backward/forward collection compatibility
+        await Promise.all([
+          setDoc(adminDocRef, adminData, { merge: true }),
+          setDoc(adminUserDocRef, adminData, { merge: true }),
+        ]);
       }
     } catch (docErr: any) {
       console.error('[admin-auth-service] Firestore error while handling admin doc:', docErr);
-      throw docErr;
+      return { user: null, error: `[${docErr.code || 'FIRESTORE_ERROR'}] ${docErr.message || 'Failed to read/write admin document in Firestore.'}` };
     }
 
     return { user: adminData };
@@ -83,11 +94,18 @@ export async function logoutAdmin(): Promise<void> {
 
 export function subscribeToCurrentAdmin(uid: string, callback: (user: AdminUser | null) => void) {
   const adminDocRef = doc(db, 'admins', uid);
-  return onSnapshot(adminDocRef, (snap) => {
-    if (snap.exists()) {
-      callback(snap.data() as AdminUser);
-    } else {
+  return onSnapshot(
+    adminDocRef,
+    (snap) => {
+      if (snap.exists()) {
+        callback(snap.data() as AdminUser);
+      } else {
+        callback(null);
+      }
+    },
+    (err) => {
+      console.error('[subscribeToCurrentAdmin Error]:', err);
       callback(null);
     }
-  });
+  );
 }

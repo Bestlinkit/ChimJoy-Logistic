@@ -8,11 +8,15 @@ service cloud.firestore {
     }
 
     // True when the signed-in user is an admin.
-    // Bootstraps safely: if no admins doc exists yet, returns false.
+    // Bootstraps safely: checks both /admins/ and /admin_users/ docs.
     function isAdmin() {
-      return isSignedIn()
-             && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
-             && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'Super Admin';
+      return isSignedIn() && (
+        (exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role in ['Super Admin', 'Admin', 'Operations', 'Fleet Manager'])
+        ||
+        (exists(/databases/$(database)/documents/admin_users/$(request.auth.uid)) &&
+         get(/databases/$(database)/documents/admin_users/$(request.auth.uid)).data.role in ['Super Admin', 'Admin', 'Operations', 'Fleet Manager'])
+      );
     }
 
     // users/{uid} – owner-only access
@@ -20,11 +24,12 @@ service cloud.firestore {
       allow read, write: if isSignedIn() && request.auth.uid == userId;
     }
 
-    // admins/{adminId} – any authenticated user can read/write their own
-    // doc (required so the first admin login can create the document).
+    // admins/{adminId} & admin_users/{adminId} – owner access for setup and profile
     match /admins/{adminId} {
-      allow read: if isSignedIn() && request.auth.uid == adminId;
-      allow write: if isSignedIn() && request.auth.uid == adminId;
+      allow read, write: if isSignedIn() && request.auth.uid == adminId;
+    }
+    match /admin_users/{adminId} {
+      allow read, write: if isSignedIn() && request.auth.uid == adminId;
     }
 
     // vehicles (public fleet) – public read, admin write
@@ -33,27 +38,31 @@ service cloud.firestore {
       allow create, update, delete: if isAdmin();
     }
 
-    // bookingRequests – users create their own, admins manage all
+    // bookingRequests – authenticated users create and view, admins manage all
     match /bookingRequests/{bookingId} {
-      allow create: if isSignedIn()
-                    && request.resource.data.uid == request.auth.uid;
-      allow read, update: if
-            (isSignedIn() && resource.data.uid == request.auth.uid)
-            || isAdmin();
+      allow create: if isSignedIn();
+      allow read, update: if isSignedIn() && (
+        resource == null ||
+        resource.data.uid == request.auth.uid ||
+        resource.data.customerEmail == request.auth.token.email ||
+        isAdmin()
+      );
       allow delete: if isAdmin();
     }
 
     // carHireBookings – same rules as bookingRequests
     match /carHireBookings/{bookingId} {
-      allow create: if isSignedIn()
-                    && request.resource.data.uid == request.auth.uid;
-      allow read, update: if
-            (isSignedIn() && resource.data.uid == request.auth.uid)
-            || isAdmin();
+      allow create: if isSignedIn();
+      allow read, update: if isSignedIn() && (
+        resource == null ||
+        resource.data.uid == request.auth.uid ||
+        resource.data.customerEmail == request.auth.token.email ||
+        isAdmin()
+      );
       allow delete: if isAdmin();
     }
 
-    // admin_notifications – admin reads, any signed-in user can create
+    // admin_notifications – admin reads/manages, signed-in users can create
     match /admin_notifications/{notifId} {
       allow create: if isSignedIn();
       allow read, update, delete: if isAdmin();

@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { initializeFirestore, getFirestore } from "firebase/firestore";
+import { getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 import { getAnalytics, isSupported, Analytics } from "firebase/analytics";
@@ -17,20 +17,14 @@ const firebaseConfig = {
 export const NEXT_PUBLIC_FIREBASE_VAPID_KEY =
   process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY || "BJt8sl6DdE3a-bbvEvzIJx7Iiu6dxTOQzsZjO5fFwB9fw7EHRs_pNKark5gxR-WVSHiBPm34jRvzVJb5Fzztuz4";
 
-const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-
-let firestoreInstance;
-try {
-  firestoreInstance = initializeFirestore(app, {
-    experimentalAutoDetectLongPolling: true,
-  });
-} catch (e) {
-  firestoreInstance = getFirestore(app);
-}
-
-export const db = firestoreInstance;
+export const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const storage = getStorage(app);
+
+if (process.env.NODE_ENV !== "production") {
+  console.log(`[Firebase Initialized] Project: ${firebaseConfig.projectId}, Auth Domain: ${firebaseConfig.authDomain}`);
+}
 
 export let analytics: Analytics | undefined;
 if (typeof window !== "undefined") {
