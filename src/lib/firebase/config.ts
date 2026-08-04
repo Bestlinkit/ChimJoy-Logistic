@@ -14,6 +14,14 @@ const firebaseConfig = {
   measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || "G-NWH78YE627",
 };
 
+// Validate environment variables
+const requiredKeys = ['apiKey', 'authDomain', 'projectId', 'storageBucket', 'messagingSenderId', 'appId'] as const;
+for (const key of requiredKeys) {
+  if (!firebaseConfig[key]) {
+    throw new Error(`[Firebase Config Error] Missing required Firebase configuration key: ${key}`);
+  }
+}
+
 export const NEXT_PUBLIC_FIREBASE_VAPID_KEY =
   process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY || "BJt8sl6DdE3a-bbvEvzIJx7Iiu6dxTOQzsZjO5fFwB9fw7EHRs_pNKark5gxR-WVSHiBPm34jRvzVJb5Fzztuz4";
 
@@ -22,8 +30,8 @@ export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const storage = getStorage(app);
 
-if (process.env.NODE_ENV !== "production") {
-  console.log(`[Firebase Initialized] Project: ${firebaseConfig.projectId}, Auth Domain: ${firebaseConfig.authDomain}`);
+if (typeof window !== "undefined") {
+  console.log(`[Firebase Initialized] Singleton Active | Project ID: ${firebaseConfig.projectId} | Auth Domain: ${firebaseConfig.authDomain}`);
 }
 
 export let analytics: Analytics | undefined;

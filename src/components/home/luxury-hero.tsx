@@ -30,6 +30,7 @@ export const LuxuryHero = () => {
 
   // Floating Navigation Scroll shrink state
   const [isScrolled, setIsScrolled] = useState(false);
+  const [particleOffsets, setParticleOffsets] = useState<{ x: number; offset: number }[]>([]);
 
   // Booking Card State
   const [activeStep, setActiveStep] = useState<number>(1);
@@ -42,6 +43,13 @@ export const LuxuryHero = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   useEffect(() => {
+    setParticleOffsets(
+      [...Array(6)].map(() => ({
+        x: Math.random() * 1000,
+        offset: Math.random() * 40 - 20,
+      }))
+    );
+
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
     };
@@ -107,14 +115,14 @@ export const LuxuryHero = () => {
       {/* LAYER 4: SUBTLE FLOATING GOLD PARTICLES   */}
       {/* ========================================== */}
       <div className="absolute inset-0 z-2 pointer-events-none overflow-hidden">
-        {[...Array(6)].map((_, i) => (
+        {particleOffsets.map((p, i) => (
           <motion.div
             key={i}
-            initial={{ opacity: 0.1, y: 100, x: Math.random() * 1000 }}
+            initial={{ opacity: 0.1, y: 100, x: p.x }}
             animate={{
               opacity: [0.1, 0.4, 0.1],
               y: [-20, -120],
-              x: `+=${Math.random() * 40 - 20}`,
+              x: `+=${p.offset}`,
             }}
             transition={{
               duration: 12 + i * 3,

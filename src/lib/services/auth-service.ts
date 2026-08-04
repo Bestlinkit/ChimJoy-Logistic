@@ -114,29 +114,42 @@ export async function updateUserProfile(uid: string, data: Partial<UserProfile>)
 export async function signInWithGoogle(): Promise<{ user: UserProfile | null; error?: string }> {
   try {
     const provider = new GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: 'select_account' });
     const cred = await signInWithPopup(auth, provider);
-    const userDocRef = doc(db, 'users', cred.user.uid);
-    const userSnap = await getDoc(userDocRef);
 
-    let profile: UserProfile;
-    if (userSnap.exists()) {
-      profile = userSnap.data() as UserProfile;
-    } else {
-      profile = {
-        uid: cred.user.uid,
-        email: cred.user.email || '',
-        displayName: cred.user.displayName || 'Google User',
-        photoURL: cred.user.photoURL || '',
-        emailVerified: cred.user.emailVerified,
-        role: 'customer',
-        createdAt: new Date().toISOString(),
-      };
-      await setDoc(userDocRef, profile);
+    if (!cred.user || !auth.currentUser) {
+      return { user: null, error: 'Firebase authentication failed. No active current user.' };
     }
+
+    const uid = cred.user.uid;
+    console.log(`[Google Auth Success] Authenticated UID: ${uid} | Email: ${cred.user.email}`);
+
+    const userDocRef = doc(db, 'users', uid);
+    let profile: UserProfile = {
+      uid,
+      email: cred.user.email || '',
+      displayName: cred.user.displayName || 'Google User',
+      photoURL: cred.user.photoURL || '',
+      emailVerified: true,
+      role: 'customer',
+      createdAt: new Date().toISOString(),
+    };
+
+    try {
+      const userSnap = await getDoc(userDocRef).catch(() => null);
+      if (userSnap && userSnap.exists()) {
+        profile = { ...(userSnap.data() as UserProfile), emailVerified: true };
+      } else {
+        await setDoc(userDocRef, profile, { merge: true });
+      }
+    } catch (docErr: any) {
+      console.warn('[signInWithGoogle] Non-blocking Firestore user profile save error:', docErr);
+    }
+
     return { user: profile };
   } catch (err: any) {
     console.error('[Google Sign-In Error]:', err);
-    return { user: null, error: err.message || 'Google Sign-In failed.' };
+    return { user: null, error: `[${err.code || 'GOOGLE_AUTH_ERROR'}] ${err.message || 'Google Sign-In failed.'}` };
   }
 }
 
