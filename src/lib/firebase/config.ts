@@ -1,5 +1,5 @@
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { initializeFirestore } from "firebase/firestore";
+import { initializeFirestore, getFirestore } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
 import { getStorage } from "firebase/storage";
 import { getAnalytics, isSupported, Analytics } from "firebase/analytics";
@@ -19,11 +19,16 @@ export const NEXT_PUBLIC_FIREBASE_VAPID_KEY =
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 
-// Initialize Firestore with auto-detect long polling to prevent "client is offline" errors across all networks and proxies
-export const db = initializeFirestore(app, {
-  experimentalAutoDetectLongPolling: true,
-});
+let firestoreInstance;
+try {
+  firestoreInstance = initializeFirestore(app, {
+    experimentalAutoDetectLongPolling: true,
+  });
+} catch (e) {
+  firestoreInstance = getFirestore(app);
+}
 
+export const db = firestoreInstance;
 export const auth = getAuth(app);
 export const storage = getStorage(app);
 
