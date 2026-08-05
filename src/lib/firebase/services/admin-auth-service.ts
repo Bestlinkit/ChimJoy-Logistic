@@ -55,9 +55,15 @@ export async function loginAdmin(email: string, pass: string): Promise<{ user: A
     };
 
     try {
+      const fetchDocWithTimeout = (ref: any) =>
+        Promise.race([
+          getDoc(ref),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000)),
+        ]).catch(() => null);
+
       const [adminSnap, adminUserSnap] = await Promise.all([
-        getDoc(adminDocRef).catch(() => null),
-        getDoc(adminUserDocRef).catch(() => null),
+        fetchDocWithTimeout(adminDocRef),
+        fetchDocWithTimeout(adminUserDocRef),
       ]);
 
       if (adminSnap && adminSnap.exists()) {
@@ -65,15 +71,14 @@ export async function loginAdmin(email: string, pass: string): Promise<{ user: A
       } else if (adminUserSnap && adminUserSnap.exists()) {
         adminData = adminUserSnap.data() as AdminUser;
       } else {
-        // Create in both locations for backward/forward collection compatibility
-        await Promise.all([
+        // Create in both locations asynchronously without blocking response
+        Promise.all([
           setDoc(adminDocRef, adminData, { merge: true }),
           setDoc(adminUserDocRef, adminData, { merge: true }),
-        ]);
+        ]).catch((err) => console.warn('[loginAdmin] Async setDoc warning:', err));
       }
     } catch (docErr: any) {
-      console.error('[admin-auth-service] Firestore error while handling admin doc:', docErr);
-      return { user: null, error: `[${docErr.code || 'FIRESTORE_ERROR'}] ${docErr.message || 'Failed to read/write admin document in Firestore.'}` };
+      console.warn('[admin-auth-service] Non-blocking Firestore error while handling admin doc:', docErr);
     }
 
     return { user: adminData };

@@ -65,10 +65,16 @@ export async function loginCustomer(email: string, pass?: string): Promise<{ use
     if (!pass) pass = 'Password123!';
     const cred = await signInWithEmailAndPassword(auth, email, pass);
     const userDocRef = doc(db, 'users', cred.user.uid);
-    const userSnap = await getDoc(userDocRef);
+    const fetchDocWithTimeout = (ref: any) =>
+      Promise.race([
+        getDoc(ref),
+        new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000)),
+      ]).catch(() => null);
+
+    const userSnap = await fetchDocWithTimeout(userDocRef);
 
     let profile: UserProfile;
-    if (userSnap.exists()) {
+    if (userSnap && userSnap.exists()) {
       profile = userSnap.data() as UserProfile;
       profile.emailVerified = cred.user.emailVerified;
     } else {
@@ -80,7 +86,9 @@ export async function loginCustomer(email: string, pass?: string): Promise<{ use
         role: 'customer',
         createdAt: new Date().toISOString(),
       };
-      await setDoc(userDocRef, profile);
+      setDoc(userDocRef, profile, { merge: true }).catch((err) =>
+        console.warn('[loginCustomer] Async setDoc warning:', err)
+      );
     }
     return { user: profile };
   } catch (err: any) {
