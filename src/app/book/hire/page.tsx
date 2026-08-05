@@ -543,23 +543,21 @@ function CarHireContent() {
                   onClick={() => handleSelectVehicle(v)}
                   className={`rounded-3xl overflow-hidden cursor-pointer transition-all duration-300 flex flex-col ${
                     isSelected
-                      ? 'bg-[#9BC800] shadow-[0_0_40px_rgba(155,200,0,0.5)] ring-2 ring-[#9BC800]'
+                      ? 'bg-[#081322] border-2 border-[#9BC800] shadow-[0_0_35px_rgba(155,200,0,0.3)] ring-2 ring-[#9BC800]/50'
                       : 'bg-white/10 backdrop-blur-sm border border-white/15 hover:bg-white/15 hover:border-[#9BC800]/60'
                   }`}
                 >
                   {/* Photo */}
                   <div className="relative h-52 overflow-hidden">
                     <img
-                      src={v.image}
+                      src={v.image || v.coverImage || '/images/suv_prado_1.jpg'}
                       alt={v.name}
                       className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                     />
-                    <div className={`absolute inset-0 bg-gradient-to-t ${isSelected ? 'from-[#9BC800]/80' : 'from-[#0B192C]/70'} via-transparent to-transparent`} />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0B192C]/80 via-transparent to-transparent" />
 
                     {/* Category badge */}
-                    <span className={`absolute top-3 left-3 text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full ${
-                      isSelected ? 'bg-[#0B192C] text-[#9BC800]' : 'bg-[#9BC800] text-[#0B192C]'
-                    }`}>
+                    <span className="absolute top-3 left-3 text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-[#9BC800] text-[#0B192C]">
                       {v.categoryName}
                     </span>
 
@@ -567,18 +565,19 @@ function CarHireContent() {
                       <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="absolute top-3 right-3 w-8 h-8 rounded-full bg-[#0B192C] flex items-center justify-center"
+                        className="absolute top-3 right-3 px-3 py-1 rounded-full bg-[#9BC800] text-[#0B192C] text-xs font-black flex items-center gap-1 shadow-md"
                       >
-                        <CheckCircle2 className="w-5 h-5 text-[#9BC800]" />
+                        <CheckCircle2 className="w-4 h-4 text-[#0B192C]" />
+                        <span>Selected</span>
                       </motion.div>
                     )}
                   </div>
 
                   {/* Info */}
-                  <div className={`p-5 flex flex-col flex-1 gap-4 ${isSelected ? 'text-[#0B192C]' : 'text-white'}`}>
+                  <div className="p-5 flex flex-col flex-1 gap-4 text-white">
                     <div>
-                      <h3 className="font-display font-black text-lg leading-tight">{v.name}</h3>
-                      <p className={`text-xs font-medium mt-1 leading-relaxed line-clamp-2 ${isSelected ? 'text-[#0B192C]/70' : 'text-slate-300'}`}>
+                      <h3 className="font-display font-black text-lg leading-tight text-white">{v.name}</h3>
+                      <p className="text-xs font-medium mt-1 leading-relaxed line-clamp-2 text-slate-300">
                         {v.description}
                       </p>
                     </div>
@@ -589,24 +588,22 @@ function CarHireContent() {
                         { icon: <Users className="w-3.5 h-3.5" />, value: `${v.passengers} seats` },
                         { icon: <Briefcase className="w-3.5 h-3.5" />, value: `${v.luggage} bags` },
                         { icon: <Car className="w-3.5 h-3.5" />, value: v.transmission },
-                        { icon: hireType === 'self' ? <Key className="w-3.5 h-3.5" /> : <UserCheck className="w-3.5 h-3.5" />, value: hireType === 'self' ? 'Self Drive' : 'Chchauffeur Included' },
+                        { icon: hireType === 'self' ? <Key className="w-3.5 h-3.5" /> : <UserCheck className="w-3.5 h-3.5" />, value: hireType === 'self' ? 'Self Drive' : 'Chauffeur Included' },
                       ].map((spec, i) => (
-                        <div key={i} className={`flex items-center gap-2 rounded-xl p-2.5 ${
-                          isSelected ? 'bg-[#0B192C]/10' : 'bg-white/10'
-                        }`}>
-                          <span className={isSelected ? 'text-[#0B192C]/60' : 'text-[#9BC800]'}>{spec.icon}</span>
-                          <span className={`text-[11px] font-black ${isSelected ? 'text-[#0B192C]' : 'text-white'}`}>{spec.value}</span>
+                        <div key={i} className="flex items-center gap-2 rounded-xl p-2.5 bg-white/10 border border-white/5">
+                          <span className="text-[#9BC800]">{spec.icon}</span>
+                          <span className="text-[11px] font-black text-white">{spec.value}</span>
                         </div>
                       ))}
                     </div>
 
                     {/* Price + CTA */}
-                    <div className={`mt-auto pt-4 border-t ${isSelected ? 'border-[#0B192C]/15' : 'border-white/15'} flex items-center justify-between gap-3`}>
+                    <div className="mt-auto pt-4 border-t border-white/15 flex items-center justify-between gap-3">
                       <div>
-                        <span className={`text-[10px] font-bold uppercase tracking-wider block ${isSelected ? 'text-[#0B192C]/60' : 'text-slate-400'}`}>
+                        <span className="text-[10px] font-bold uppercase tracking-wider block text-slate-400">
                           {rentalDays > 1 ? `${rentalDays}-day total` : 'Per Day'}
                         </span>
-                        <span className={`font-display text-xl font-black ${isSelected ? 'text-[#0B192C]' : 'text-white'}`}>
+                        <span className="font-display text-xl font-black text-[#9BC800]">
                           {formatCurrency(totalPrice)}
                         </span>
                       </div>
@@ -617,11 +614,11 @@ function CarHireContent() {
                         onClick={() => handleSelectVehicle(v)}
                         className={`px-4 py-2.5 rounded-full text-xs font-black border transition-all duration-200 cursor-pointer ${
                           isSelected
-                            ? 'bg-[#0B192C] text-[#9BC800] border-[#0B192C]'
-                            : 'bg-[#9BC800] text-[#0B192C] border-[#9BC800] hover:shadow-[0_0_15px_rgba(155,200,0,0.4)]'
+                            ? 'bg-[#9BC800] text-[#0B192C] border-[#9BC800]'
+                            : 'bg-white/10 text-white border-white/20 hover:bg-[#9BC800] hover:text-[#0B192C]'
                         }`}
                       >
-                        {isSelected ? '✓ Selected' : 'Reserve Vehicle'}
+                        {isSelected ? '✓ Selected' : 'Select Vehicle'}
                       </motion.button>
                     </div>
                   </div>

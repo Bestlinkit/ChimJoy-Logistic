@@ -18,15 +18,30 @@ import ContactFormNotificationEmail from '@/emails/templates/ContactFormNotifica
 import NewsletterSubscriptionEmail from '@/emails/templates/NewsletterSubscriptionEmail';
 import CorporateAccountApprovedEmail from '@/emails/templates/CorporateAccountApprovedEmail';
 
-const SENDER_EMAIL = 'ChimJoy Logistics <onboarding@resend.dev>';
+const SENDER_EMAIL = process.env.RESEND_FROM_EMAIL || 'ChimJoy Logistics <onboarding@resend.dev>';
 
 export function getResendClient() {
-  const apiKey = process.env.RESEND_API_KEY || 're_placeholder_key_for_build';
+  const apiKey = process.env.RESEND_API_KEY || '';
   return new Resend(apiKey);
 }
 
 export async function sendReactEmail(to: string, subject: string, reactComponent: React.ReactElement) {
   try {
+    if (typeof window !== 'undefined') {
+      const res = await fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to,
+          subject,
+          text: subject,
+        }),
+      });
+      const json = await res.json();
+      console.log('[Resend Email Response]:', json);
+      return json;
+    }
+
     const resend = getResendClient();
     const { data, error } = await resend.emails.send({
       from: SENDER_EMAIL,
@@ -40,6 +55,7 @@ export async function sendReactEmail(to: string, subject: string, reactComponent
       return { success: false, error };
     }
 
+    console.log('[Resend Email Success]:', data);
     return { success: true, data };
   } catch (err) {
     console.error('[Resend Email Exception]:', err);
