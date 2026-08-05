@@ -19,19 +19,30 @@ export default function AdminLoginPage() {
     setErrorMsg('');
     setIsSubmitting(true);
 
-    const res = await loginAdmin(email, password);
-    setIsSubmitting(false);
+    try {
+      const res = await loginAdmin(email, password);
+      setIsSubmitting(false);
 
-    if (res.error || !res.user) {
-      setErrorMsg(res.error || 'Authentication failed. Unauthorized administrator credentials.');
-      return;
+      if (res.error || !res.user) {
+        setErrorMsg(res.error || 'Authentication failed. Please check your admin credentials.');
+        return;
+      }
+
+      // Log activity asynchronously without blocking navigation
+      logAdminAction(
+        res.user.email,
+        res.user.role,
+        'ADMIN_LOGIN',
+        'Authentication',
+        `Admin logged in successfully from /admin/login`
+      ).catch((logErr) => console.warn('[AdminLoginPage] Audit log warning:', logErr));
+
+      // Redirect immediately to Admin Dashboard
+      router.push('/admin');
+    } catch (err: any) {
+      setIsSubmitting(false);
+      setErrorMsg(err.message || 'An unexpected error occurred during authentication.');
     }
-
-    // Log login activity
-    await logAdminAction(res.user.email, res.user.role, 'ADMIN_LOGIN', 'Authentication', `Admin logged in successfully from /admin/login`);
-
-    // Redirect to Admin Dashboard
-    router.push('/admin');
   };
 
   return (
