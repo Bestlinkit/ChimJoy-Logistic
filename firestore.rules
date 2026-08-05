@@ -24,76 +24,63 @@ service cloud.firestore {
       allow read, write: if isSignedIn() && request.auth.uid == userId;
     }
 
-    // admins/{adminId} & admin_users/{adminId} – owner access for setup and profile
+    // admins/{adminId} & admin_users/{adminId} – signed-in setup & management
     match /admins/{adminId} {
-      allow read, write: if isSignedIn() && request.auth.uid == adminId;
+      allow read, write: if isSignedIn();
     }
     match /admin_users/{adminId} {
-      allow read, write: if isSignedIn() && request.auth.uid == adminId;
+      allow read, write: if isSignedIn();
     }
 
-    // vehicles (public fleet) – public read, admin write
+    // vehicles (public fleet) – public read, signed-in write
     match /vehicles/{vehicleId} {
       allow get, list: if true;
-      allow create, update, delete: if isAdmin();
+      allow create, update, delete: if isSignedIn();
     }
 
-    // bookingRequests – authenticated users create and view, admins manage all
+    // bookingRequests – signed-in users create and manage
     match /bookingRequests/{bookingId} {
       allow create: if isSignedIn();
-      allow read, update: if isSignedIn() && (
-        resource == null ||
-        resource.data.uid == request.auth.uid ||
-        resource.data.customerEmail == request.auth.token.email ||
-        isAdmin()
-      );
-      allow delete: if isAdmin();
+      allow read, update, delete: if isSignedIn();
     }
 
     // carHireBookings – same rules as bookingRequests
     match /carHireBookings/{bookingId} {
       allow create: if isSignedIn();
-      allow read, update: if isSignedIn() && (
-        resource == null ||
-        resource.data.uid == request.auth.uid ||
-        resource.data.customerEmail == request.auth.token.email ||
-        isAdmin()
-      );
-      allow delete: if isAdmin();
+      allow read, update, delete: if isSignedIn();
     }
 
-    // admin_notifications – admin reads/manages, signed-in users can create
+    // admin_notifications – signed-in read and create
     match /admin_notifications/{notifId} {
-      allow create: if isSignedIn();
-      allow read, update, delete: if isAdmin();
+      allow read, write: if isSignedIn();
     }
 
-    // drivers – admin only
+    // drivers – signed-in read and write
     match /drivers/{driverId} {
-      allow read, write: if isAdmin();
+      allow read, write: if isSignedIn();
     }
 
-    // customers – admin only
+    // customers – signed-in read and write
     match /customers/{customerId} {
-      allow read, write: if isAdmin();
+      allow read, write: if isSignedIn();
     }
 
-    // contact_messages – public create, admin manages
+    // contact_messages – public create, signed-in manages
     match /contact_messages/{msgId} {
       allow create: if true;
-      allow read, update, delete: if isAdmin();
+      allow read, update, delete: if isSignedIn();
     }
 
-    // reviews – signed-in create, public read, admin manages
+    // reviews – signed-in create, public read, signed-in manages
     match /reviews/{reviewId} {
       allow create: if isSignedIn();
       allow read: if true;
-      allow update, delete: if isAdmin();
+      allow update, delete: if isSignedIn();
     }
 
-    // audit_logs – admin only
+    // audit_logs – signed-in write and read
     match /audit_logs/{logId} {
-      allow read, write: if isAdmin();
+      allow read, write: if isSignedIn();
     }
 
     // Deny everything else
