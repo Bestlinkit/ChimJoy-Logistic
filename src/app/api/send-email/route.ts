@@ -23,33 +23,36 @@ function getReactComponent(templateName: EmailTemplateName, metadata: any) {
       return React.createElement(ForgotPasswordEmail, { name: metadata?.name || 'Customer', resetUrl: metadata?.resetLink || '#' });
     case 'booking-received':
       return React.createElement(BookingReceivedEmail, {
-        customerName: metadata?.customerName || 'Customer',
-        bookingRef: metadata?.bookingRef || '',
-        pickupAddress: metadata?.pickupAddress || '',
-        destination: metadata?.destination || '',
+        name: metadata?.customerName || metadata?.name || 'Customer',
+        refCode: metadata?.bookingRef || metadata?.refCode || '',
+        serviceType: metadata?.serviceType || 'Car Hire',
+        pickupLocation: metadata?.pickupAddress || metadata?.pickupLocation || '',
         pickupDate: metadata?.pickupDate || '',
-        pickupTime: metadata?.pickupTime || ''
+        estimatedTotal: Number(metadata?.totalAmount) || Number(metadata?.estimatedTotal) || 0,
+        bookingUrl: metadata?.bookingUrl || ''
       });
     case 'booking-confirmed':
       return React.createElement(BookingConfirmedEmail, {
-        customerName: metadata?.customerName || 'Customer',
-        bookingRef: metadata?.bookingRef || '',
-        pickupAddress: metadata?.pickupAddress || '',
-        destination: metadata?.destination || '',
+        name: metadata?.customerName || metadata?.name || 'Customer',
+        refCode: metadata?.bookingRef || metadata?.refCode || '',
+        vehicleName: metadata?.vehicleRequested || metadata?.vehicleName || '',
+        pickupLocation: metadata?.pickupAddress || metadata?.pickupLocation || '',
         pickupDate: metadata?.pickupDate || '',
-        pickupTime: metadata?.pickupTime || '',
-        vehicleRequested: metadata?.vehicleRequested || '',
-        totalAmount: metadata?.totalAmount || '0'
+        driverName: metadata?.driverName || '',
+        driverPhone: metadata?.driverPhone || '',
+        totalPrice: Number(metadata?.totalAmount) || Number(metadata?.totalPrice) || 0,
+        bookingUrl: metadata?.bookingUrl || ''
       });
     case 'driver-assigned':
       return React.createElement(DriverAssignedEmail, {
-        customerName: metadata?.customerName || 'Customer',
-        bookingRef: metadata?.bookingRef || '',
+        name: metadata?.customerName || metadata?.name || 'Customer',
+        refCode: metadata?.bookingRef || metadata?.refCode || '',
         driverName: metadata?.driverName || '',
         driverPhone: metadata?.driverPhone || '',
-        vehicleDetails: metadata?.vehicleDetails || '',
-        licensePlate: metadata?.licensePlate || '',
-        pickupTime: metadata?.pickupTime || ''
+        vehicleModel: metadata?.vehicleDetails || metadata?.vehicleModel || '',
+        plateNumber: metadata?.licensePlate || metadata?.plateNumber || '',
+        pickupTime: metadata?.pickupTime || '',
+        whatsAppUrl: metadata?.whatsAppUrl || ''
       });
     case 'contact-form':
       return React.createElement(ContactFormNotificationEmail, {
@@ -59,13 +62,16 @@ function getReactComponent(templateName: EmailTemplateName, metadata: any) {
         subject: metadata?.subject || '',
         message: metadata?.message || ''
       });
-    case 'admin-new-booking':
+    case 'admin-booking-alert':
       return React.createElement(AdminNewBookingAlertEmail, {
-        bookingRef: metadata?.bookingRef || '',
+        refCode: metadata?.bookingRef || metadata?.refCode || '',
         customerName: metadata?.customerName || '',
+        customerPhone: metadata?.customerPhone || '',
         serviceType: metadata?.serviceType || '',
+        pickupLocation: metadata?.pickupLocation || metadata?.pickupAddress || '',
+        dropoffLocation: metadata?.dropoffLocation || metadata?.destination || '',
         pickupDate: metadata?.pickupDate || '',
-        pickupTime: metadata?.pickupTime || ''
+        estimatedPrice: Number(metadata?.estimatedPrice) || Number(metadata?.totalAmount) || 0
       });
     default:
       return null;
