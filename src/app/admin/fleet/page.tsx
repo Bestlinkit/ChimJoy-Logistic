@@ -2,12 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Car, Plus, Search, Edit, Trash2, ShieldCheck, CheckCircle2, XCircle, Wrench, Eye, EyeOff } from 'lucide-react';
+import { Car, Plus, Search, Edit, Trash2, ShieldCheck, CheckCircle2, XCircle, Wrench, Eye, EyeOff, RefreshCw } from 'lucide-react';
 import { subscribeToFleet, saveVehicleToDb, deleteVehicleFromDb } from '@/lib/firebase/services/admin-db-service';
 import { logAdminAction } from '@/lib/firebase/services/admin-audit-service';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 import { uploadVehicleImage } from '@/lib/firebase/services/storage-service';
 import { Vehicle } from '@/types';
+import { MOCK_VEHICLES } from '@/lib/mock-data';
 
 export default function AdminFleetPage() {
   const { adminUser } = useAdminAuth();
@@ -19,9 +20,30 @@ export default function AdminFleetPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    const unsub = subscribeToFleet((data) => setVehicles(data));
+    const unsub = subscribeToFleet((data) => {
+      setVehicles(data);
+      if (data.length === 0) {
+        MOCK_VEHICLES.forEach((v) => {
+          saveVehicleToDb(v as any).catch(() => null);
+        });
+      }
+    });
     return () => unsub();
   }, []);
+
+  const handleSyncFleet = async () => {
+    setIsSubmitting(true);
+    try {
+      for (const v of MOCK_VEHICLES) {
+        await saveVehicleToDb(v as any);
+      }
+      alert('✓ Authentic fleet vehicles synced successfully!');
+    } catch (err: any) {
+      alert(`Sync Error: ${err.message}`);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleOpenAddModal = () => {
     setEditingVehicle({
@@ -106,13 +128,23 @@ export default function AdminFleetPage() {
           </p>
         </div>
 
-        <button
-          onClick={handleOpenAddModal}
-          className="px-4 py-2.5 rounded-xl bg-[#9BC800] hover:bg-[#8ab300] text-[#0B192C] text-xs font-black uppercase tracking-wider shadow-lemon flex items-center gap-2 cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add New Vehicle</span>
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleSyncFleet}
+            disabled={isSubmitting}
+            className="px-4 py-2.5 rounded-xl bg-[#0B192C] hover:bg-[#003366] text-white text-xs font-black uppercase tracking-wider flex items-center gap-2 cursor-pointer border border-white/10 disabled:opacity-50"
+          >
+            <RefreshCw className={`w-4 h-4 text-[#9BC800] ${isSubmitting ? 'animate-spin' : ''}`} />
+            <span>Sync Authentic Vehicles</span>
+          </button>
+          <button
+            onClick={handleOpenAddModal}
+            className="px-4 py-2.5 rounded-xl bg-[#9BC800] hover:bg-[#8ab300] text-[#0B192C] text-xs font-black uppercase tracking-wider shadow-lemon flex items-center gap-2 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add New Vehicle</span>
+          </button>
+        </div>
       </div>
 
       {/* Search & Grid Stats */}
