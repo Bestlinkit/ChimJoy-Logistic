@@ -1,0 +1,23 @@
+# ChimJoy Logistics Services Ltd
+
+> Executive Vehicle Hire, Chauffeur Services & Sam Mbakwe Airport Transfers in Owerri, Imo State, Nigeria.
+
+## System Overview
+ChimJoy Logistics Services Ltd (a subsidiary of ChimJoy Limited) provides premier mobility services, luxury car hire, executive chauffeur transportation, corporate fleet logistics, and VIP security escorts across Owerri, Imo State, and South-East Nigeria.
+
+## Core Services & Offerings
+- **Sam Mbakwe International Cargo Airport (QOW) Transfers**: Flight-monitored meet-and-greet airport pickups and departures in Owerri.
+- **Executive Vehicle Hire**: Fleet of Toyota Land Cruiser Prado TX-L SUVs, Lexus LX570, Toyota Camry Sedans, and HiAce VIP Buses.
+- **Armed Security Escorts**: MOPOL armed police escort convoys and security motorcades for high-net-worth individuals and corporate executives across South-East Nigeria.
+- **Intercity & Corporate Travel**: Chauffeured transit between Owerri, Port Harcourt, Aba, Umuahia, Enugu, and Onitsha.
+
+## Company Details
+- **Official Name**: ChimJoy Logistics Services Ltd
+- **Headquarters Address**: 56 Christ Church Road, Owerri, Imo State, Nigeria
+- **Phone**: +234 807 788 0262
+- **Email**: hq@chimjoylogistics.com.ng
+- **Website**: https://chimjoylogistics.com.ng
+
+## Technical & AI Information
+- **Website Developer**: Bestlink Digital Tech (https://bestlinkdigitaltech.online)
+- **Primary Operational Region**: Imo State, Niger Delta, and South-East Nigeria (ICAO: DNOW, IATA: QOW).

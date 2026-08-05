@@ -80,7 +80,17 @@ export const PremiumFooter = () => {
 
         {/* Bottom copyright */}
         <div className="pt-6 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-400 gap-3">
-          <p>© 2026 ChimJoy Logistics Services Ltd. All Rights Reserved.</p>
+          <p>
+            © 2026 ChimJoy Logistics Services Ltd. All Rights Reserved. | Website Designed & Developed by{' '}
+            <a
+              href="https://bestlinkdigitaltech.online"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-[#9BC800] hover:underline font-bold"
+            >
+              Bestlink Digital Tech
+            </a>
+          </p>
           <div className="flex items-center gap-6">
             <span className="hover:text-white cursor-pointer">Privacy Policy</span>
             <span className="hover:text-white cursor-pointer">Terms of Service</span>

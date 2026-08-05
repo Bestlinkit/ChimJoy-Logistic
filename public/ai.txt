@@ -1,0 +1,13 @@
+# AI Search Indexing Directives
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /account/
+Disallow: /auth/
+Disallow: /api/
+
+# Company Information
+Organization: ChimJoy Logistics Services Ltd
+Website: https://chimjoylogistics.com.ng
+Primary Service: Executive Car Hire & Airport Transfers in Owerri, Nigeria
+Developer: Bestlink Digital Tech (https://bestlinkdigitaltech.online)

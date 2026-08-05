@@ -1,0 +1,9 @@
+/* TEAM */
+  Site: ChimJoy Logistics Services Ltd
+  Location: Owerri, Imo State, Nigeria
+  Contact: hq@chimjoylogistics.com.ng
+
+/* SITE DESIGN & DEVELOPMENT */
+  Developer: Bestlink Digital Tech
+  Website: https://bestlinkdigitaltech.online
+  Technologies: Next.js 15, TypeScript, TailwindCSS, Framer Motion, Firebase
