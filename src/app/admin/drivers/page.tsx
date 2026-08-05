@@ -278,7 +278,7 @@ export default function AdminDriversPage() {
                     disabled={isSubmitting}
                     className="w-1/2 py-3 rounded-xl bg-[#0B192C] hover:bg-[#003366] text-white font-black cursor-pointer shadow-md disabled:opacity-50"
                   >
-                    {isSubmitting ? 'Saving...' : 'Save to Firestore'}
+                    {isSubmitting ? 'Saving...' : 'Save Driver Details'}
                   </button>
                 </div>
               </form>

@@ -18,14 +18,15 @@ import ContactFormNotificationEmail from '@/emails/templates/ContactFormNotifica
 import NewsletterSubscriptionEmail from '@/emails/templates/NewsletterSubscriptionEmail';
 import CorporateAccountApprovedEmail from '@/emails/templates/CorporateAccountApprovedEmail';
 
-const SENDER_EMAIL = process.env.RESEND_FROM_EMAIL || 'ChimJoy Logistics <onboarding@resend.dev>';
+import { sendTransactionalEmail } from '@/lib/email/sendEmail';
+import { EmailTemplateName } from '@/lib/email/types';
 
-export function getResendClient() {
-  const apiKey = process.env.RESEND_API_KEY || '';
-  return new Resend(apiKey);
-}
-
-export async function sendReactEmail(to: string, subject: string, reactComponent: React.ReactElement) {
+export async function sendReactEmail(
+  to: string,
+  subject: string,
+  reactComponent: React.ReactElement,
+  templateName: EmailTemplateName = 'welcome'
+) {
   try {
     if (typeof window !== 'undefined') {
       const res = await fetch('/api/send-email', {
@@ -34,31 +35,23 @@ export async function sendReactEmail(to: string, subject: string, reactComponent
         body: JSON.stringify({
           to,
           subject,
+          template: templateName,
           text: subject,
         }),
       });
       const json = await res.json();
-      console.log('[Resend Email Response]:', json);
+      console.log(`[Client Email Dispatch] template=${templateName} response:`, json);
       return json;
     }
 
-    const resend = getResendClient();
-    const { data, error } = await resend.emails.send({
-      from: SENDER_EMAIL,
+    return await sendTransactionalEmail({
       to,
       subject,
-      react: reactComponent,
+      template: templateName,
+      reactComponent,
     });
-
-    if (error) {
-      console.error('[Resend Email Error]:', error);
-      return { success: false, error };
-    }
-
-    console.log('[Resend Email Success]:', data);
-    return { success: true, data };
   } catch (err) {
-    console.error('[Resend Email Exception]:', err);
+    console.error('[Email Dispatch Exception]:', err);
     return { success: false, error: err };
   }
 }

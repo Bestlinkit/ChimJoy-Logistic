@@ -8,7 +8,15 @@ export function subscribeToPublicFleet(callback: (vehicles: Vehicle[]) => void) 
   const fleetRef = collection(db, 'vehicles');
   return onSnapshot(
     fleetRef,
-    (snapshot) => {
+    async (snapshot) => {
+      if (snapshot.empty) {
+        // Auto-seed initial fleet to Cloud Firestore
+        for (const v of MOCK_VEHICLES) {
+          await setDoc(doc(db, 'vehicles', v.id), v).catch(() => null);
+        }
+        callback(MOCK_VEHICLES);
+        return;
+      }
       const list: Vehicle[] = snapshot.docs.map((docSnap) => ({
         id: docSnap.id,
         ...(docSnap.data() as Omit<Vehicle, 'id'>),
@@ -17,7 +25,7 @@ export function subscribeToPublicFleet(callback: (vehicles: Vehicle[]) => void) 
     },
     (err) => {
       console.error('[subscribeToPublicFleet Error]:', err);
-      callback([]);
+      callback(MOCK_VEHICLES);
     }
   );
 }

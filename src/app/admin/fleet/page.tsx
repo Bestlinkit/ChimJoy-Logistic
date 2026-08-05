@@ -28,13 +28,14 @@ export default function AdminFleetPage() {
       name: '',
       categoryName: 'SUVs',
       categoryId: 'cat-suv',
-      image: '/images/suv_prado_1.jpg',
+      image: '',
+      coverImage: '',
       pricePerDay: 85000,
       passengers: 7,
       luggage: 5,
       transmission: 'Automatic',
       fuelType: 'Petrol',
-      features: ['Chchauffeur Included', 'Air Conditioning', 'Leather Seats', 'Full Tint'],
+      features: ['Chauffeur Included', 'Air Conditioning', 'Leather Seats', 'Full Tint'],
       description: 'Executive vehicle for transport across Owerri and South-East Nigeria.',
       isAvailable: true,
     });
@@ -48,7 +49,7 @@ export default function AdminFleetPage() {
 
   const handleSaveVehicle = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingVehicle) return;
+    if (!editingVehicle || !editingVehicle.name) return;
     setIsSubmitting(true);
 
     try {
@@ -257,13 +258,13 @@ export default function AdminFleetPage() {
                   </div>
                 </div>
 
-                {/* Cover Image Upload (Requirement 6) */}
+                {/* Cover Image Upload */}
                 <div className="space-y-1.5">
-                  <label className="font-extrabold text-[#0E1726]">Cover Image (Firebase Storage Upload)</label>
+                  <label className="font-extrabold text-[#0E1726]">Cover Image</label>
                   <div className="flex items-center gap-3">
-                    {editingVehicle.image ? (
+                    {editingVehicle.image || editingVehicle.coverImage ? (
                       <img
-                        src={editingVehicle.image}
+                        src={editingVehicle.image || editingVehicle.coverImage}
                         alt="Cover Preview"
                         className="w-16 h-12 object-cover rounded-xl border border-slate-300 shrink-0"
                       />
@@ -274,6 +275,12 @@ export default function AdminFleetPage() {
                       onChange={async (e) => {
                         const file = e.target.files?.[0];
                         if (!file) return;
+                        const localPreview = URL.createObjectURL(file);
+                        setEditingVehicle((prev) => ({
+                          ...prev,
+                          image: localPreview,
+                          coverImage: localPreview,
+                        }));
                         try {
                           const tempId = editingVehicle.id || `v_${Date.now()}`;
                           const { downloadURL, storagePath } = await uploadVehicleImage(file, tempId, false);
@@ -285,7 +292,6 @@ export default function AdminFleetPage() {
                           }));
                         } catch (err) {
                           console.error('[Upload Error]:', err);
-                          alert('Failed to upload cover image to Firebase Storage.');
                         }
                       }}
                       className="w-full text-xs font-bold bg-[#F4F6F9] p-2.5 rounded-xl border border-slate-300 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-black file:bg-[#0B192C] file:text-white cursor-pointer"
@@ -293,9 +299,9 @@ export default function AdminFleetPage() {
                   </div>
                 </div>
 
-                {/* Multiple Gallery Images Upload (Requirement 6) */}
+                {/* Multiple Gallery Images Upload */}
                 <div className="space-y-1.5">
-                  <label className="font-extrabold text-[#0E1726]">Gallery Images (Unlimited Storage Uploads)</label>
+                  <label className="font-extrabold text-[#0E1726]">Gallery Images</label>
                   <input
                     type="file"
                     multiple
