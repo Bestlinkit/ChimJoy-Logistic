@@ -91,7 +91,7 @@ function VerifyEmailContent() {
 
           <div className="space-y-2">
             <span className="text-xs font-black uppercase tracking-widest text-[#003366] bg-[#003366]/10 px-4 py-1 rounded-full">
-              OFFICIAL FIREBASE EMAIL VERIFICATION
+              EMAIL VERIFICATION REQUIRED
             </span>
             <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-[#0E1726]">
               Verify Your Email Address
