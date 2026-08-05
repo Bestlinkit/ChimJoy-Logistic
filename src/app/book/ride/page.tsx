@@ -71,6 +71,7 @@ function RideBookingContent() {
 
   // Vehicle selection
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [isStep1Done, setIsStep1Done] = useState(false);
 
   // Customer info + submission
   const [customerName, setCustomerName]   = useState('');
@@ -84,15 +85,16 @@ function RideBookingContent() {
   const selectedService = SERVICE_TYPES.find(s => s.id === serviceType);
   const showFlightField = selectedService?.showFlight ?? false;
 
-  const filteredVehicles = vehicleCategory
-    ? fleet.filter(v => v.categoryName === vehicleCategory)
-    : fleet;
+  const filteredVehicles = fleet;
 
   const handleFindVehicles = (e: React.FormEvent) => {
     e.preventDefault();
     setShowContactForm(false);
-    // Scroll to vehicle section
-    document.getElementById('vehicle-section')?.scrollIntoView({ behavior: 'smooth' });
+    setIsStep1Done(true);
+    // Scroll to vehicle section smoothly
+    setTimeout(() => {
+      document.getElementById('vehicle-section')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
 
   const handleSelectVehicle = (v: Vehicle) => {
@@ -215,15 +217,18 @@ function RideBookingContent() {
       </section>
 
       {/* ── BOOKING FORM ─────────────────────────────────────────────── */}
-      <section className="py-14 bg-white">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-          <motion.div
+      <AnimatePresence mode="wait">
+        {!isStep1Done && (
+          <motion.section
+            key="step1"
             initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-            className="space-y-10"
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -30 }}
+            transition={{ duration: 0.4 }}
+            className="py-14 bg-white"
           >
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="space-y-10">
             {/* Section header */}
             <div className="space-y-2">
               <span className="text-xs font-black uppercase tracking-widest text-[#003366] bg-[#003366]/10 px-4 py-1.5 rounded-full border border-[#003366]/15">
@@ -387,32 +392,8 @@ function RideBookingContent() {
                 </div>
               </div>
 
-              {/* Vehicle Category + Flight Number row */}
+              {/* Flight Number row */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                {/* Vehicle Category */}
-                <div className="relative group">
-                  <label className="absolute -top-2.5 left-4 bg-white px-1 text-[10px] font-black uppercase tracking-widest text-[#003366] z-10">
-                    Vehicle Category
-                  </label>
-                  <div className="flex items-center gap-3 border-2 border-[#0B192C]/20 group-focus-within:border-[#9BC800] rounded-2xl px-4 py-4 transition-all duration-200 bg-white shadow-sm">
-                    <Car className="w-5 h-5 text-[#9BC800] shrink-0" />
-                    <select
-                      value={vehicleCategory}
-                      onChange={e => setVehicleCategory(e.target.value)}
-                      className="w-full text-sm font-medium text-[#0E1726] focus:outline-none bg-transparent appearance-none cursor-pointer"
-                    >
-                      <option value="">Any category (show all)</option>
-                      <option value="Economy">Economy</option>
-                      <option value="SUVs">SUVs</option>
-                      <option value="Executive Cars">Executive Cars</option>
-                      <option value="Luxury Vehicles">Luxury Vehicles</option>
-                      <option value="Mini Bus / HiAce">Mini Bus / HiAce</option>
-                      <option value="Logistics Vans">Logistics Vans</option>
-                    </select>
-                    <ChevronDown className="w-4 h-4 text-[#475569] shrink-0" />
-                  </div>
-                </div>
-
                 {/* Flight Number — only for airport service types */}
                 <AnimatePresence>
                   {showFlightField && (
@@ -461,30 +442,43 @@ function RideBookingContent() {
                 </LuxuryButton>
               </div>
             </form>
-          </motion.div>
-        </div>
-      </section>
+            </div>
+          </motion.section>
+        )}
+      </AnimatePresence>
 
       {/* ── VEHICLE SELECTION ────────────────────────────────────────── */}
-      <section id="vehicle-section" className="py-14 bg-[#F4F6F9]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-          <motion.div
+      <AnimatePresence mode="wait">
+        {isStep1Done && (
+          <motion.section
+            key="step2"
+            id="vehicle-section"
             initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.55 }}
-            className="space-y-2"
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -30 }}
+            transition={{ duration: 0.4 }}
+            className="py-14 bg-[#F4F6F9] min-h-[500px]"
           >
-            <span className="text-xs font-black uppercase tracking-widest text-[#003366] bg-[#003366]/10 px-4 py-1.5 rounded-full border border-[#003366]/15">
-              STEP 2 — CHOOSE YOUR VEHICLE
-            </span>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+              <div className="space-y-4">
+                <button
+                  type="button"
+                  onClick={() => setIsStep1Done(false)}
+                  className="text-xs font-bold text-[#475569] hover:text-[#0B192C] transition-colors flex items-center gap-1.5"
+                >
+                  <ArrowLeft className="w-4 h-4" /> Edit Trip Details
+                </button>
+                <div className="space-y-2">
+                  <span className="text-xs font-black uppercase tracking-widest text-[#003366] bg-[#003366]/10 px-4 py-1.5 rounded-full border border-[#003366]/15">
+                    STEP 2 — CHOOSE YOUR VEHICLE
+                  </span>
             <h2 className="font-display text-2xl sm:text-3xl font-extrabold text-[#0E1726]">
               Available Vehicles for Your Trip.
             </h2>
             <p className="text-[#475569] text-sm font-medium">
-              All vehicles come with a professional chauffeur. Select the one that best fits your journey.
-            </p>
-          </motion.div>
+                  All vehicles come with a professional chauffeur. Select the one that best fits your journey.
+                </p>
+              </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredVehicles.map((v, idx) => {
@@ -584,9 +578,11 @@ function RideBookingContent() {
                 </motion.div>
               );
             })}
-          </div>
-        </div>
-      </section>
+              </div>
+            </div>
+          </motion.section>
+        )}
+      </AnimatePresence>
 
       {/* ── CONTACT FORM ─────────────────────────────────────────────── */}
       <AnimatePresence>
