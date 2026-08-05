@@ -179,11 +179,6 @@ export default function AdminDashboardPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Link href="/admin/system">
-            <button className="px-4 py-2.5 rounded-xl bg-[#003366] hover:bg-[#0B192C] text-white text-xs font-extrabold uppercase tracking-wider transition-colors shadow-sm cursor-pointer">
-              System Diagnostics & Seed
-            </button>
-          </Link>
           <Link href="/admin/bookings">
             <button className="px-4 py-2.5 rounded-xl bg-[#0B192C] hover:bg-[#003366] text-white text-xs font-extrabold uppercase tracking-wider transition-colors shadow-sm cursor-pointer">
               Manage Bookings

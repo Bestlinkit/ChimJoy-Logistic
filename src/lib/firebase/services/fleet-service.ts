@@ -8,24 +8,12 @@ export function subscribeToPublicFleet(callback: (vehicles: Vehicle[]) => void) 
   const fleetRef = collection(db, 'vehicles');
   return onSnapshot(
     fleetRef,
-    async (snapshot) => {
-      if (snapshot.empty) {
-        // Auto-seed real authentic vehicles into Firestore if empty
-        try {
-          for (const v of MOCK_VEHICLES) {
-            await setDoc(doc(db, 'vehicles', v.id), v);
-          }
-        } catch (seedErr) {
-          console.error('[subscribeToPublicFleet Auto-Seed Error]:', seedErr);
-        }
-        callback(MOCK_VEHICLES);
-      } else {
-        const list: Vehicle[] = snapshot.docs.map((docSnap) => ({
-          id: docSnap.id,
-          ...(docSnap.data() as Omit<Vehicle, 'id'>),
-        }));
-        callback(list);
-      }
+    (snapshot) => {
+      const list: Vehicle[] = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...(docSnap.data() as Omit<Vehicle, 'id'>),
+      }));
+      callback(list);
     },
     (err) => {
       console.error('[subscribeToPublicFleet Error]:', err);

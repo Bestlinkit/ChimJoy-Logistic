@@ -175,22 +175,20 @@ const INITIAL_SEED_VEHICLES: Vehicle[] = [
 
 export function subscribeToFleet(callback: (vehicles: Vehicle[]) => void) {
   const fleetRef = collection(db, 'vehicles');
-  return onSnapshot(fleetRef, async (snapshot) => {
-    if (snapshot.empty) {
-      try {
-        for (const v of INITIAL_SEED_VEHICLES) {
-          await setDoc(doc(db, 'vehicles', v.id), { ...v, createdAt: new Date().toISOString() });
-        }
-      } catch (err) {
-        console.error('[Firestore Seed Error]:', err);
-      }
+  return onSnapshot(
+    fleetRef,
+    (snapshot) => {
+      const list: Vehicle[] = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...(docSnap.data() as Omit<Vehicle, 'id'>),
+      }));
+      callback(list);
+    },
+    (err) => {
+      console.error('[subscribeToFleet Error]:', err);
+      callback([]);
     }
-    const list: Vehicle[] = snapshot.docs.map((docSnap) => ({
-      id: docSnap.id,
-      ...(docSnap.data() as Omit<Vehicle, 'id'>),
-    }));
-    callback(list.length > 0 ? list : INITIAL_SEED_VEHICLES);
-  });
+  );
 }
 
 export async function saveVehicleToDb(vehicleData: Partial<Vehicle>): Promise<string> {
@@ -217,55 +215,22 @@ export async function deleteVehicleFromDb(vehicleId: string): Promise<void> {
 // ============================================================================
 // 3. DRIVERS REALTIME LISTENER & ACTIONS
 // ============================================================================
-// Initial Driver Seed Data
-const INITIAL_SEED_DRIVERS: Omit<AdminDriver, 'id'>[] = [
-  {
-    name: 'Chinedu Okeke',
-    phone: '+234 807 788 0262',
-    email: 'chinedu@chimjoylogistics.com.ng',
-    licenseNumber: 'IMO-884920-CH',
-    licenseExpiry: '2028-12-31',
-    status: 'Available',
-    rating: 4.9,
-    completedTripsCount: 142,
-    employmentStatus: 'Full Time',
-    emergencyContact: '+234 803 123 4567',
-    createdAt: new Date().toISOString(),
-  },
-  {
-    name: 'Emeka Nwosu',
-    phone: '+234 802 345 6789',
-    email: 'emeka@chimjoylogistics.com.ng',
-    licenseNumber: 'IMO-773910-EM',
-    licenseExpiry: '2027-09-30',
-    status: 'Available',
-    rating: 5.0,
-    completedTripsCount: 98,
-    employmentStatus: 'Full Time',
-    emergencyContact: '+234 805 987 6543',
-    createdAt: new Date().toISOString(),
-  },
-];
-
 export function subscribeToDrivers(callback: (drivers: AdminDriver[]) => void) {
   const driversRef = collection(db, 'drivers');
-  return onSnapshot(driversRef, async (snapshot) => {
-    if (snapshot.empty) {
-      console.log('[Firestore] Drivers collection empty. Seeding initial driver data...');
-      try {
-        for (const d of INITIAL_SEED_DRIVERS) {
-          await addDoc(driversRef, d);
-        }
-      } catch (err) {
-        console.error('[Firestore Driver Seed Error]:', err);
-      }
+  return onSnapshot(
+    driversRef,
+    (snapshot) => {
+      const list: AdminDriver[] = snapshot.docs.map((docSnap) => ({
+        id: docSnap.id,
+        ...(docSnap.data() as Omit<AdminDriver, 'id'>),
+      }));
+      callback(list);
+    },
+    (err) => {
+      console.error('[subscribeToDrivers Error]:', err);
+      callback([]);
     }
-    const list: AdminDriver[] = snapshot.docs.map((docSnap) => ({
-      id: docSnap.id,
-      ...(docSnap.data() as Omit<AdminDriver, 'id'>),
-    }));
-    callback(list);
-  });
+  );
 }
 
 export async function saveDriverToDb(driverData: Partial<AdminDriver>): Promise<string> {
