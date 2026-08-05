@@ -2,9 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { MessageSquare, Search, Star, Archive, Trash2, Mail, Phone, Clock, Send } from 'lucide-react';
+import { MessageSquare, Search, Mail, Phone, Send, Eye } from 'lucide-react';
 import { subscribeToMessages } from '@/lib/firebase/services/admin-db-service';
 import { ContactMessage } from '@/types/admin';
+import { db } from '@/lib/firebase/config';
+import { doc, updateDoc } from 'firebase/firestore';
 
 export default function AdminMessagesPage() {
   const [messages, setMessages] = useState<ContactMessage[]>([]);
@@ -18,6 +20,21 @@ export default function AdminMessagesPage() {
     });
     return () => unsub();
   }, []);
+
+  const handleSelectMessage = async (m: ContactMessage) => {
+    setSelectedMessage(m);
+    // Mark as read in Firestore if unread
+    if (!m.isRead) {
+      try {
+        await updateDoc(doc(db, 'contact_messages', m.id), { isRead: true, status: 'read' });
+      } catch (e) {
+        console.warn('[Mark read error]:', e);
+      }
+    }
+  };
+
+  const unreadCount = messages.filter(m => !m.isRead).length;
+
 
   const filtered = messages.filter(
     (m) =>
@@ -41,6 +58,12 @@ export default function AdminMessagesPage() {
             Manage inquiries, corporate ride requests, and customer feedback.
           </p>
         </div>
+        {unreadCount > 0 && (
+          <div className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-[#003366]/10 border border-[#003366]/20">
+            <span className="w-2 h-2 rounded-full bg-[#003366] animate-pulse" />
+            <span className="text-xs font-black text-[#003366]">{unreadCount} Unread</span>
+          </div>
+        )}
       </div>
 
       {/* Inbox Split View */}
@@ -65,18 +88,23 @@ export default function AdminMessagesPage() {
               filtered.map((m) => (
                 <div
                   key={m.id}
-                  onClick={() => setSelectedMessage(m)}
+                  onClick={() => handleSelectMessage(m)}
                   className={`p-4 rounded-2xl border transition-all cursor-pointer space-y-1 ${
                     selectedMessage?.id === m.id
                       ? 'bg-[#003366] text-white border-[#003366]'
                       : 'bg-[#F4F6F9] hover:bg-slate-100 text-[#0E1726] border-slate-200'
                   }`}
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="font-extrabold text-xs block">{m.senderName}</span>
-                    <span className="text-[10px] opacity-75">{new Date(m.createdAt).toLocaleDateString()}</span>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-extrabold text-xs block flex-1 truncate">{m.senderName}</span>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {!m.isRead && selectedMessage?.id !== m.id && (
+                        <span className="w-2 h-2 rounded-full bg-[#003366]" />
+                      )}
+                      <span className="text-[10px] opacity-75">{new Date(m.createdAt).toLocaleDateString()}</span>
+                    </div>
                   </div>
-                  <span className="font-bold text-xs block truncate">{m.subject}</span>
+                  <span className="font-bold text-xs block truncate">{m.subject || 'General Enquiry'}</span>
                   <p className="text-[11px] opacity-80 line-clamp-1 font-normal">{m.message}</p>
                 </div>
               ))

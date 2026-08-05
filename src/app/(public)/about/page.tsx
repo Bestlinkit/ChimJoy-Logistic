@@ -149,19 +149,19 @@ export default function AboutPage() {
             </div>
 
             {/* Buttons */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              <Link href="/book">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 pt-2 w-full sm:w-auto">
+              <Link href="/book" className="w-full sm:w-auto">
                 <LuxuryButton
                   variant="lemon"
                   size="lg"
                   icon={<ArrowRight className="w-4 h-4" />}
-                  className="hover:shadow-[0_0_25px_rgba(155,200,0,0.6)]"
+                  className="w-full justify-center hover:shadow-[0_0_25px_rgba(155,200,0,0.6)]"
                 >
                   Book a Ride
                 </LuxuryButton>
               </Link>
-              <Link href="/contact">
-                <LuxuryButton variant="outline" size="lg" icon={<Phone className="w-4 h-4 text-[#9BC800]" />}>
+              <Link href="/contact" className="w-full sm:w-auto">
+                <LuxuryButton variant="outline" size="lg" icon={<Phone className="w-4 h-4 text-[#9BC800]" />} className="w-full justify-center">
                   Contact Us
                 </LuxuryButton>
               </Link>
@@ -206,18 +206,22 @@ export default function AboutPage() {
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center"
           >
-            {/* Left Side — Transparent Land Cruiser cutout */}
-            <div className="lg:col-span-6 flex items-center justify-center">
+            {/* Left Side — Full-scene executive vehicle photo */}
+            <div className="lg:col-span-6">
               <motion.div
-                whileHover={{ scale: 1.02 }}
-                className="relative min-h-[300px] sm:h-[400px] w-full flex flex-col items-center justify-end"
+                initial={{ opacity: 0, x: -25 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.6 }}
+                className="relative h-[380px] sm:h-[460px] w-full rounded-3xl overflow-hidden shadow-corporate border border-[#0B192C]/15 group"
               >
                 <img
-                  src="/images/luxury_executive_suv_prado.png"
-                  alt="Classic black Toyota Land Cruiser Prado — ChimJoy executive fleet"
-                  className="w-full h-[260px] sm:h-[340px] object-contain drop-shadow-[0_24px_50px_rgba(11,25,44,0.25)] transition-transform duration-500 hover:scale-105"
+                  src="/images/suv_who_we_are_cutout.png"
+                  alt="ChimJoy executive SUV fleet ready for service in Owerri, Imo State"
+                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
                 />
-                <div className="mt-4 sm:mt-0 sm:absolute sm:bottom-0 sm:left-6 sm:right-6 bg-white/95 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-[#0B192C]/15 shadow-lg w-full sm:w-auto">
+                <div className="absolute inset-0 bg-gradient-to-t from-[#0B192C]/80 via-transparent to-transparent" />
+                <div className="absolute bottom-5 left-5 right-5 bg-white/95 backdrop-blur-md p-4 rounded-2xl border border-[#0B192C]/15 shadow-xl">
                   <h4 className="font-display text-sm sm:text-base font-extrabold text-[#0E1726]">
                     Executive Fleet in Owerri
                   </h4>
@@ -523,19 +527,19 @@ export default function AboutPage() {
             </p>
           </motion.div>
 
-          <div className="flex flex-wrap items-center justify-center gap-4 pt-2">
-            <Link href="/book">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-4 pt-2 w-full max-w-sm sm:max-w-none mx-auto">
+            <Link href="/book" className="w-full sm:w-auto">
               <LuxuryButton
                 variant="lemon"
                 size="xl"
                 icon={<ArrowRight className="w-5 h-5" />}
-                className="hover:shadow-[0_0_30px_rgba(155,200,0,0.65)]"
+                className="w-full justify-center hover:shadow-[0_0_30px_rgba(155,200,0,0.65)]"
               >
                 Book a Ride
               </LuxuryButton>
             </Link>
-            <Link href="/fleet">
-              <LuxuryButton variant="outline" size="xl" icon={<Car className="w-4 h-4 text-[#9BC800]" />}>
+            <Link href="/fleet" className="w-full sm:w-auto">
+              <LuxuryButton variant="outline" size="xl" icon={<Car className="w-4 h-4 text-[#9BC800]" />} className="w-full justify-center">
                 Hire a Car
               </LuxuryButton>
             </Link>

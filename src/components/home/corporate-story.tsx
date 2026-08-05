@@ -63,8 +63,8 @@ export const CorporateStory = () => {
           >
             <div className="relative h-[400px] w-full rounded-3xl overflow-hidden shadow-corporate border border-[#0B192C]/15 group">
               <img
-                src="/images/happy_customer_in_ride.png"
-                alt="Executive Customer Enjoying Chauffeur Ride in Owerri"
+                src="/images/nigerian_driver_alone_1785747001406.png"
+                alt="ChimJoy Professional Chauffeur Ready for Executive Service in Owerri"
                 loading="lazy"
                 decoding="async"
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"

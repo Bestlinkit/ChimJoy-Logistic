@@ -2,23 +2,94 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, PhoneCall, Mail, Clock, Send, CheckCircle2 } from 'lucide-react';
+import { MapPin, PhoneCall, Mail, Clock, Send, CheckCircle2, Loader2 } from 'lucide-react';
 import { LuxuryButton } from '@/components/ui/luxury-button';
+import { db } from '@/lib/firebase/config';
+import { collection, addDoc } from 'firebase/firestore';
+
+const ADMIN_EMAIL = 'hq@chimjoylogistics.com.ng';
 
 export default function ContactPage() {
   const [fullName, setFullName] = useState('');
-  const [phone, setPhone]       = useState('');
-  const [email, setEmail]       = useState('');
-  const [message, setMessage]   = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [subject, setSubject] = useState('');
+  const [message, setMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage(null);
+
     if (!fullName || !phone || !message) {
-      alert('Please fill in your name, phone number, and message.');
+      setErrorMessage('Please fill in your name, phone number, and message.');
       return;
     }
-    setIsSubmitted(true);
+
+    setIsSubmitting(true);
+
+    try {
+      const messageSubject = subject.trim() || 'General Enquiry';
+      const now = new Date().toISOString();
+
+      // 1. Save message to Firestore contact_messages collection
+      const msgRef = await addDoc(collection(db, 'contact_messages'), {
+        senderName: fullName,
+        senderEmail: email || '',
+        senderPhone: phone,
+        subject: messageSubject,
+        message,
+        status: 'unread',
+        isRead: false,
+        replyStatus: 'pending',
+        createdAt: now,
+      });
+
+      // 2. Create admin notification (non-blocking)
+      addDoc(collection(db, 'admin_notifications'), {
+        title: 'New Contact Message',
+        message: `${fullName} sent a message: "${messageSubject}"`,
+        type: 'message',
+        isRead: false,
+        relatedId: msgRef.id,
+        createdAt: now,
+      }).catch((e) => console.warn('[Contact notification warning]:', e));
+
+      // 3. Send email notification to admin via Resend (non-blocking)
+      fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: ADMIN_EMAIL,
+          subject: `New Contact Message: ${messageSubject}`,
+          template: 'contact_notification',
+          text: `New contact message received:\n\nName: ${fullName}\nEmail: ${email || 'Not provided'}\nPhone: ${phone}\nSubject: ${messageSubject}\nMessage:\n${message}\n\nSubmitted: ${new Date(now).toLocaleString('en-NG', { timeZone: 'Africa/Lagos' })}`,
+        }),
+      }).catch((e) => console.warn('[Contact admin email warning]:', e));
+
+      // 4. Send auto-reply to customer if email provided (non-blocking)
+      if (email) {
+        fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            to: email,
+            subject: 'We Received Your Message — ChimJoy Logistics',
+            template: 'contact_notification',
+            text: `Hello ${fullName},\n\nThank you for contacting ChimJoy Logistics Services Ltd. Our dispatch concierge team has received your message and will get back to you shortly.\n\nYour message reference: ${msgRef.id}\n\nBest regards,\nChimJoy Logistics Concierge Team\nhq@chimjoylogistics.com.ng | +234 807 788 0262`,
+          }),
+        }).catch((e) => console.warn('[Contact auto-reply warning]:', e));
+      }
+
+      setIsSubmitted(true);
+    } catch (err: any) {
+      console.error('[Contact Form Error]:', err);
+      setErrorMessage('Failed to send your message. Please try again or call us directly.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -46,7 +117,7 @@ export default function ContactPage() {
           </p>
         </motion.div>
 
-        {/* 2-Column Previous Layout Structure */}
+        {/* 2-Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-6xl mx-auto items-start">
 
           {/* Info Side */}
@@ -95,6 +166,12 @@ export default function ContactPage() {
 
               {!isSubmitted ? (
                 <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+                  {errorMessage && (
+                    <div className="p-3 rounded-xl bg-red-500/20 border border-red-400/30 text-red-200 font-bold text-xs">
+                      {errorMessage}
+                    </div>
+                  )}
+
                   <div className="space-y-1">
                     <label className="font-bold uppercase tracking-wider text-slate-300">Full Name</label>
                     <input
@@ -132,6 +209,17 @@ export default function ContactPage() {
                   </div>
 
                   <div className="space-y-1">
+                    <label className="font-bold uppercase tracking-wider text-slate-300">Subject</label>
+                    <input
+                      type="text"
+                      value={subject}
+                      onChange={e => setSubject(e.target.value)}
+                      placeholder="e.g. Airport Pickup, Corporate Booking..."
+                      className="w-full p-3.5 bg-white/10 border border-white/15 rounded-xl text-white placeholder-slate-400 focus:outline-none focus:border-[#9BC800] transition-colors"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
                     <label className="font-bold uppercase tracking-wider text-slate-300">Message / Inquiry</label>
                     <textarea
                       rows={4}
@@ -149,9 +237,10 @@ export default function ContactPage() {
                       variant="lemon"
                       size="lg"
                       className="w-full justify-center"
-                      icon={<Send className="w-4 h-4" />}
+                      disabled={isSubmitting}
+                      icon={isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
                     >
-                      Send Concierge Message
+                      {isSubmitting ? 'Sending Message...' : 'Send Concierge Message'}
                     </LuxuryButton>
                   </div>
                 </form>
@@ -162,7 +251,7 @@ export default function ContactPage() {
                   </div>
                   <h4 className="font-display font-black text-xl text-white">Message Sent!</h4>
                   <p className="text-xs text-slate-300 leading-relaxed">
-                    Thank you, {fullName}! Our dispatch concierge team has received your message and will contact you shortly.
+                    Thank you, {fullName}! Our dispatch concierge team has received your message and will contact you shortly. A confirmation has been sent to your email if provided.
                   </p>
                 </div>
               )}

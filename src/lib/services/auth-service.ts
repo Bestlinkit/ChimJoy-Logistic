@@ -3,13 +3,12 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
-  sendEmailVerification,
-  sendPasswordResetEmail,
   GoogleAuthProvider,
   signInWithPopup,
   updateProfile,
+  fetchSignInMethodsForEmail,
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, updateDoc, collection, addDoc } from 'firebase/firestore';
 
 export interface UserProfile {
   uid: string;
@@ -32,19 +31,47 @@ export const MOCK_USER: UserProfile = {
   createdAt: new Date().toISOString(),
 };
 
-// 1. Customer Email & Password Register
-export async function registerCustomer(email: string, pass: string, name: string, phone?: string): Promise<{ user: UserProfile | null; error?: string }> {
+// ─────────────────────────────────────────────────────────────────────────────
+// 1. Customer Registration — NO Firebase default emails ever
+// ─────────────────────────────────────────────────────────────────────────────
+export async function registerCustomer(
+  email: string,
+  pass: string,
+  name: string,
+  phone?: string
+): Promise<{ user: UserProfile | null; error?: string }> {
   try {
+    // Check if email already exists before attempting creation
+    const methods = await fetchSignInMethodsForEmail(auth, email).catch(() => []);
+    if (methods && methods.length > 0) {
+      // Email is already registered — check if verified
+      try {
+        const tempCred = await signInWithEmailAndPassword(auth, email, pass);
+        if (tempCred.user.emailVerified) {
+          await firebaseSignOut(auth);
+          return { user: null, error: 'VERIFIED_EMAIL_EXISTS' };
+        } else {
+          await firebaseSignOut(auth);
+          return { user: null, error: 'UNVERIFIED_EMAIL_EXISTS' };
+        }
+      } catch {
+        // Wrong password or sign-in failed — email exists but we can't check verified status
+        return { user: null, error: 'UNVERIFIED_EMAIL_EXISTS' };
+      }
+    }
+
+    // Create new Firebase Auth account (does NOT send any email)
     const cred = await createUserWithEmailAndPassword(auth, email, pass);
     await updateProfile(cred.user, { displayName: name });
-    await sendEmailVerification(cred.user);
+    // NOTE: We do NOT call sendEmailVerification() — Firebase email is disabled
+    // Resend email is triggered via API route below
 
     const userProfile: UserProfile = {
       uid: cred.user.uid,
       email: cred.user.email || email,
       displayName: name,
       phoneNumber: phone || '',
-      emailVerified: cred.user.emailVerified,
+      emailVerified: false,
       role: 'customer',
       createdAt: new Date().toISOString(),
       savedAddresses: [],
@@ -52,14 +79,50 @@ export async function registerCustomer(email: string, pass: string, name: string
 
     // Save user profile in Firestore
     await setDoc(doc(db, 'users', cred.user.uid), userProfile);
+
+    // Create admin notification for new registration
+    await addDoc(collection(db, 'admin_notifications'), {
+      title: 'New Customer Registration',
+      message: `${name} (${email}) has just registered on ChimJoy.`,
+      type: 'customer',
+      isRead: false,
+      createdAt: new Date().toISOString(),
+    }).catch((e) => console.warn('[Notification write warning]:', e));
+
+    // Send branded Resend verification email (non-blocking)
+    if (typeof window !== 'undefined') {
+      fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name }),
+      }).catch((e) => console.warn('[Resend verification email warning]:', e));
+
+      // Send admin alert email (non-blocking)
+      fetch('/api/send-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: 'hq@chimjoylogistics.com.ng',
+          subject: `New Customer Registration: ${name}`,
+          template: 'admin_alert',
+          text: `New customer registered:\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone || 'Not provided'}\nTime: ${new Date().toLocaleString('en-NG', { timeZone: 'Africa/Lagos' })}`,
+        }),
+      }).catch((e) => console.warn('[Admin alert email warning]:', e));
+    }
+
     return { user: userProfile };
   } catch (err: any) {
     console.error('[Register Error]:', err);
+    if (err.code === 'auth/email-already-in-use') {
+      return { user: null, error: 'UNVERIFIED_EMAIL_EXISTS' };
+    }
     return { user: null, error: err.message || 'Registration failed.' };
   }
 }
 
-// 2. Customer Email & Password Login
+// ─────────────────────────────────────────────────────────────────────────────
+// 2. Customer Login
+// ─────────────────────────────────────────────────────────────────────────────
 export async function loginCustomer(email: string, pass?: string): Promise<{ user: UserProfile | null; error?: string }> {
   try {
     if (!pass) pass = 'Password123!';
@@ -120,7 +183,9 @@ export async function updateUserProfile(uid: string, data: Partial<UserProfile>)
   await updateDoc(ref, data);
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
 // 3. Google Sign-In
+// ─────────────────────────────────────────────────────────────────────────────
 export async function signInWithGoogle(): Promise<{ user: UserProfile | null; error?: string }> {
   try {
     const provider = new GoogleAuthProvider();
@@ -151,6 +216,14 @@ export async function signInWithGoogle(): Promise<{ user: UserProfile | null; er
         profile = { ...(userSnap.data() as UserProfile), emailVerified: true };
       } else {
         await setDoc(userDocRef, profile, { merge: true });
+        // Admin notification for new Google sign-up (non-blocking)
+        addDoc(collection(db, 'admin_notifications'), {
+          title: 'New Customer Registration (Google)',
+          message: `${profile.displayName} (${profile.email}) signed up via Google.`,
+          type: 'customer',
+          isRead: false,
+          createdAt: new Date().toISOString(),
+        }).catch(() => null);
       }
     } catch (docErr: any) {
       console.warn('[signInWithGoogle] Non-blocking Firestore user profile save error:', docErr);
@@ -163,24 +236,61 @@ export async function signInWithGoogle(): Promise<{ user: UserProfile | null; er
   }
 }
 
-// 4. Send Password Reset Email
+// ─────────────────────────────────────────────────────────────────────────────
+// 4. Password Reset — sends via Resend API (not Firebase)
+// ─────────────────────────────────────────────────────────────────────────────
 export async function resetPassword(email: string): Promise<{ success: boolean; error?: string }> {
   try {
-    await sendPasswordResetEmail(auth, email);
-    return { success: true };
+    if (typeof window !== 'undefined') {
+      const res = await fetch('/api/auth/forgot-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      const json = await res.json();
+      if (!res.ok) return { success: false, error: json.error || 'Failed to send password reset email.' };
+      return { success: true };
+    }
+    return { success: false, error: 'Cannot send reset email from server context.' };
   } catch (err: any) {
     return { success: false, error: err.message || 'Failed to send password reset email.' };
   }
 }
 
-// 5. Re-send Email Verification Link
+// ─────────────────────────────────────────────────────────────────────────────
+// 5. Resend Verification — calls API route which uses Resend (not Firebase email)
+// ─────────────────────────────────────────────────────────────────────────────
 export async function resendVerification(): Promise<void> {
+  // Legacy: triggers Firebase resend if user is still signed in (fallback only)
+  // Prefer resendVerificationViaResend() for production use
   if (auth.currentUser) {
+    const { sendEmailVerification } = await import('firebase/auth');
     await sendEmailVerification(auth.currentUser);
   }
 }
 
+export async function resendVerificationViaResend(
+  email: string,
+  name?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    const res = await fetch('/api/auth/resend-verification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, name: name || 'Valued Customer' }),
+    });
+    const json = await res.json();
+    if (!res.ok) return { success: false, error: json.error || 'Failed to send verification email.' };
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Network error.' };
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // 6. Sign Out
+// ─────────────────────────────────────────────────────────────────────────────
 export async function logoutCustomer(): Promise<void> {
   await firebaseSignOut(auth);
 }
+

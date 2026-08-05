@@ -174,8 +174,10 @@ export interface ContactMessage {
   senderPhone: string;
   subject: string;
   message: string;
-  status: 'Unread' | 'Read' | 'Replied' | 'Archived';
-  isImportant: boolean;
+  status: 'unread' | 'read' | 'replied' | 'archived' | 'Unread' | 'Read' | 'Replied' | 'Archived';
+  isRead: boolean;
+  isImportant?: boolean;
+  replyStatus?: 'pending' | 'replied';
   createdAt: string;
 }
 
