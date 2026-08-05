@@ -174,7 +174,7 @@ export default function AdminDashboardPage() {
             Operations Dashboard
           </h1>
           <p className="text-xs text-[#475569] font-medium mt-0.5">
-            Realtime Live Sync with Firestore • Connected as <strong className="text-[#003366]">{adminUser?.name}</strong> ({adminUser?.role})
+            Realtime System Active • Connected as <strong className="text-[#003366]">{adminUser?.name}</strong> ({adminUser?.role})
           </p>
         </div>
 
@@ -491,7 +491,7 @@ export default function AdminDashboardPage() {
                     disabled={isSubmittingStatus}
                     className="w-1/2 py-3 rounded-xl bg-[#0B192C] hover:bg-[#003366] text-white font-black cursor-pointer shadow-md disabled:opacity-50"
                   >
-                    {isSubmittingStatus ? 'Saving...' : 'Save to Firestore'}
+                    {isSubmittingStatus ? 'Saving...' : 'Save'}
                   </button>
                 </div>
               </form>

@@ -143,7 +143,7 @@ export default function ProfilePage() {
             </LuxuryButton>
             {isSaved && (
               <span className="text-xs font-bold text-[#9BC800] flex items-center gap-1 bg-[#0B192C] px-3 py-1.5 rounded-full">
-                <CheckCircle2 className="w-4 h-4" /> Saved to Firestore!
+                <CheckCircle2 className="w-4 h-4" /> Saved successfully!
               </span>
             )}
           </div>

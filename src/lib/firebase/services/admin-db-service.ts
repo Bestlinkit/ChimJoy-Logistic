@@ -102,8 +102,9 @@ export async function assignDriverToBookingInDb(
 }
 
 // Initial Fleet Seed Data
-const INITIAL_SEED_VEHICLES: Omit<Vehicle, 'id'>[] = [
+const INITIAL_SEED_VEHICLES: Vehicle[] = [
   {
+    id: 'vehicle_prado_txl',
     name: 'Toyota Land Cruiser Prado TX-L',
     categoryName: 'SUVs',
     categoryId: 'cat-suv',
@@ -115,11 +116,12 @@ const INITIAL_SEED_VEHICLES: Omit<Vehicle, 'id'>[] = [
     luggage: 5,
     transmission: 'Automatic',
     fuelType: 'Petrol',
-    features: ['Chauffeur Included', 'Air Conditioning', 'Leather Seats', 'Bulletproof Tint'],
+    features: ['Chchauffeur Included', 'Air Conditioning', 'Leather Seats', 'Bulletproof Tint'],
     description: 'Executive armored & luxury Prado SUV for high-profile transport in South-East Nigeria.',
     isAvailable: true,
   },
   {
+    id: 'vehicle_sclass_550',
     name: 'Mercedes-Benz S-Class S550',
     categoryName: 'Luxury Vehicles',
     categoryId: 'cat-luxury',
@@ -136,6 +138,7 @@ const INITIAL_SEED_VEHICLES: Omit<Vehicle, 'id'>[] = [
     isAvailable: true,
   },
   {
+    id: 'vehicle_hiace_bus',
     name: 'Toyota HiAce Executive Coaster Mini Bus',
     categoryName: 'Mini Bus / HiAce',
     categoryId: 'cat-bus',
@@ -152,6 +155,7 @@ const INITIAL_SEED_VEHICLES: Omit<Vehicle, 'id'>[] = [
     isAvailable: true,
   },
   {
+    id: 'vehicle_hilux_truck',
     name: 'Toyota Hilux Double Cab 4x4',
     categoryName: 'Logistics Vans',
     categoryId: 'cat-truck',
@@ -173,11 +177,9 @@ export function subscribeToFleet(callback: (vehicles: Vehicle[]) => void) {
   const fleetRef = collection(db, 'vehicles');
   return onSnapshot(fleetRef, async (snapshot) => {
     if (snapshot.empty) {
-      // Auto-seed initial vehicles if Firestore is empty
-      console.log('[Firestore] Vehicles collection empty. Seeding initial fleet data...');
       try {
         for (const v of INITIAL_SEED_VEHICLES) {
-          await addDoc(fleetRef, { ...v, createdAt: new Date().toISOString() });
+          await setDoc(doc(db, 'vehicles', v.id), { ...v, createdAt: new Date().toISOString() });
         }
       } catch (err) {
         console.error('[Firestore Seed Error]:', err);
@@ -187,7 +189,7 @@ export function subscribeToFleet(callback: (vehicles: Vehicle[]) => void) {
       id: docSnap.id,
       ...(docSnap.data() as Omit<Vehicle, 'id'>),
     }));
-    callback(list);
+    callback(list.length > 0 ? list : INITIAL_SEED_VEHICLES);
   });
 }
 
