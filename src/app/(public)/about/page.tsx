@@ -213,9 +213,9 @@ export default function AboutPage() {
                 className="relative min-h-[300px] sm:h-[400px] w-full flex flex-col items-center justify-end"
               >
                 <img
-                  src="/images/about_suv_who_we_are_new.png"
-                  alt="Classic black Toyota Land Cruiser 300 — ChimJoy's executive fleet"
-                  className="w-full h-[220px] sm:h-[320px] object-contain drop-shadow-[0_24px_50px_rgba(11,25,44,0.25)] transition-transform duration-500 hover:scale-105"
+                  src="/images/luxury_executive_suv_prado.png"
+                  alt="Classic black Toyota Land Cruiser Prado — ChimJoy executive fleet"
+                  className="w-full h-[260px] sm:h-[340px] object-contain drop-shadow-[0_24px_50px_rgba(11,25,44,0.25)] transition-transform duration-500 hover:scale-105"
                 />
                 <div className="mt-4 sm:mt-0 sm:absolute sm:bottom-0 sm:left-6 sm:right-6 bg-white/95 backdrop-blur-md p-4 sm:p-5 rounded-2xl border border-[#0B192C]/15 shadow-lg w-full sm:w-auto">
                   <h4 className="font-display text-sm sm:text-base font-extrabold text-[#0E1726]">

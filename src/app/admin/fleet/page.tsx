@@ -14,6 +14,7 @@ export default function AdminFleetPage() {
   const { adminUser } = useAdminAuth();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState<Partial<Vehicle> | null>(null);
@@ -106,11 +107,15 @@ export default function AdminFleetPage() {
     }
   };
 
+  const itemsPerPage = 9;
   const filteredVehicles = vehicles.filter(
     (v) =>
       v.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (v.categoryName || '').toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const totalPages = Math.max(1, Math.ceil(filteredVehicles.length / itemsPerPage));
+  const paginatedVehicles = filteredVehicles.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="space-y-6">
@@ -154,7 +159,10 @@ export default function AdminFleetPage() {
           <input
             type="text"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
             placeholder="Search fleet by name or category..."
             className="w-full bg-transparent font-medium text-[#0E1726] focus:outline-none placeholder:text-slate-400 text-xs"
           />
@@ -168,7 +176,7 @@ export default function AdminFleetPage() {
 
       {/* Vehicle Grid Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredVehicles.map((v) => (
+        {paginatedVehicles.map((v) => (
           <motion.div
             key={v.id}
             initial={{ opacity: 0, y: 15 }}
@@ -229,6 +237,29 @@ export default function AdminFleetPage() {
             </div>
           </motion.div>
         ))}
+      </div>
+
+      {/* Pagination Bar */}
+      <div className="bg-white p-4 rounded-3xl border border-[#0B192C]/10 shadow-sm flex items-center justify-between text-xs font-bold text-slate-600">
+        <span>
+          Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong> ({filteredVehicles.length} Total Vehicles)
+        </span>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+            className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 disabled:opacity-40 cursor-pointer font-bold"
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+            className="px-3.5 py-2 rounded-xl bg-[#003366] text-white hover:bg-[#0B192C] disabled:opacity-40 cursor-pointer font-bold"
+          >
+            Next
+          </button>
+        </div>
       </div>
 
       {/* EDIT / ADD VEHICLE MODAL */}

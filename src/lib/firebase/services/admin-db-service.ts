@@ -85,6 +85,18 @@ export async function updateBookingStatusInDb(bookingId: string, status: Booking
   });
 }
 
+export async function deleteBookingFromDb(bookingId: string): Promise<void> {
+  const ref = doc(db, 'bookingRequests', bookingId);
+  await deleteDoc(ref);
+}
+
+export async function deleteCustomerFromDb(customerId: string): Promise<void> {
+  const userRef = doc(db, 'users', customerId);
+  const custRef = doc(db, 'customers', customerId);
+  await deleteDoc(userRef).catch(() => null);
+  await deleteDoc(custRef).catch(() => null);
+}
+
 export async function assignDriverToBookingInDb(
   bookingId: string,
   driverId: string,

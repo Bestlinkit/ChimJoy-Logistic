@@ -22,6 +22,9 @@ export const metadata: Metadata = {
   title: 'ChimJoy Car Hire | Premier Mobility & Airport Transfers in Owerri, Nigeria',
   description: 'Executive vehicle hire, airport transfers at Sam Mbakwe International Cargo Airport (QOW), intercity luxury transport, and armed security escorts across Imo State and Southeast Nigeria.',
   keywords: 'ChimJoy Car Hire, Owerri car rental, Sam Mbakwe airport transfer, luxury vehicle hire Nigeria, armed police escort Owerri, ChimJoy Logistics',
+  verification: {
+    google: 'ENEEgJfaocb3mlFUp3YUg52eFZeF2Zun0jfEaR45M6c',
+  },
 };
 
 export default function RootLayout({

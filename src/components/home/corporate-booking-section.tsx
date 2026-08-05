@@ -29,7 +29,7 @@ export const CorporateBookingSection = () => {
   };
 
   return (
-    <section className="py-10 bg-[#FAFAFA] text-[#0E1726] relative">
+    <section className="pt-14 sm:pt-16 pb-10 bg-[#FAFAFA] text-[#0E1726] relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
@@ -88,7 +88,7 @@ export const CorporateBookingSection = () => {
 
           {/* Smart Mobile-Compact Form */}
           <form onSubmit={handleBookingSubmit} className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 text-xs">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2.5 text-xs">
               {/* Pickup Location */}
               <div className="space-y-1">
                 <label className="font-extrabold uppercase tracking-wider text-[#0E1726] text-[10px]">Pickup</label>
@@ -121,34 +121,33 @@ export const CorporateBookingSection = () => {
                 </div>
               </div>
 
-              {/* Compact Date & Time Grid on Mobile */}
-              <div className="grid grid-cols-2 gap-2 space-y-0 lg:block lg:space-y-1">
-                <div className="space-y-1">
-                  <label className="font-extrabold uppercase tracking-wider text-[#0E1726] text-[10px]">Date</label>
-                  <div className="flex items-center gap-1 bg-[#F4F6F9] border border-[#0B192C]/15 rounded-xl p-2.5 sm:p-3">
-                    <Calendar className="w-3.5 h-3.5 text-[#003366] shrink-0" />
-                    <input
-                      type="date"
-                      required
-                      value={pickupDate}
-                      onChange={(e) => setPickupDate(e.target.value)}
-                      className="w-full bg-transparent font-bold text-[#0E1726] focus:outline-none text-[11px]"
-                    />
-                  </div>
+              {/* Date */}
+              <div className="space-y-1">
+                <label className="font-extrabold uppercase tracking-wider text-[#0E1726] text-[10px]">Date</label>
+                <div className="flex items-center gap-1.5 bg-[#F4F6F9] border border-[#0B192C]/15 rounded-xl p-2.5 sm:p-3">
+                  <Calendar className="w-3.5 h-3.5 text-[#003366] shrink-0" />
+                  <input
+                    type="date"
+                    required
+                    value={pickupDate}
+                    onChange={(e) => setPickupDate(e.target.value)}
+                    className="w-full bg-transparent font-bold text-[#0E1726] focus:outline-none text-[11px]"
+                  />
                 </div>
+              </div>
 
-                <div className="space-y-1">
-                  <label className="font-extrabold uppercase tracking-wider text-[#0E1726] text-[10px]">Time</label>
-                  <div className="flex items-center gap-1 bg-[#F4F6F9] border border-[#0B192C]/15 rounded-xl p-2.5 sm:p-3">
-                    <Clock className="w-3.5 h-3.5 text-[#003366] shrink-0" />
-                    <input
-                      type="time"
-                      required
-                      value={pickupTime}
-                      onChange={(e) => setPickupTime(e.target.value)}
-                      className="w-full bg-transparent font-bold text-[#0E1726] focus:outline-none text-[11px]"
-                    />
-                  </div>
+              {/* Time */}
+              <div className="space-y-1">
+                <label className="font-extrabold uppercase tracking-wider text-[#0E1726] text-[10px]">Time</label>
+                <div className="flex items-center gap-1.5 bg-[#F4F6F9] border border-[#0B192C]/15 rounded-xl p-2.5 sm:p-3">
+                  <Clock className="w-3.5 h-3.5 text-[#003366] shrink-0" />
+                  <input
+                    type="time"
+                    required
+                    value={pickupTime}
+                    onChange={(e) => setPickupTime(e.target.value)}
+                    className="w-full bg-transparent font-bold text-[#0E1726] focus:outline-none text-[11px]"
+                  />
                 </div>
               </div>
 
@@ -179,7 +178,7 @@ export const CorporateBookingSection = () => {
                   className="w-full justify-center py-3 sm:py-3.5 text-[#0B192C]"
                   icon={<ArrowRight className="w-4 h-4" />}
                 >
-                  {isSubmitted ? 'Checking...' : 'Check Availability'}
+                  {isSubmitted ? 'Searching...' : 'Check Availability'}
                 </LuxuryButton>
               </div>
             </div>

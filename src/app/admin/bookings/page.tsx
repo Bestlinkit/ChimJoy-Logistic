@@ -8,12 +8,14 @@ import {
   subscribeToDrivers,
   updateBookingStatusInDb,
   assignDriverToBookingInDb,
+  deleteBookingFromDb,
 } from '@/lib/firebase/services/admin-db-service';
 import { logAdminAction } from '@/lib/firebase/services/admin-audit-service';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 import { AdminBooking, BookingStatus, AdminDriver } from '@/types/admin';
 import { formatCurrency } from '@/lib/utils';
 import { DispatchOperationsPanel } from '@/components/admin/DispatchOperationsPanel';
+import { Trash2 } from 'lucide-react';
 
 export default function AdminBookingsPage() {
   const { adminUser } = useAdminAuth();
@@ -21,6 +23,8 @@ export default function AdminBookingsPage() {
   const [drivers, setDrivers] = useState<AdminDriver[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
 
   const [selectedBooking, setSelectedBooking] = useState<AdminBooking | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -74,6 +78,19 @@ export default function AdminBookingsPage() {
     }
   };
 
+  const handleDeleteBooking = async (b: AdminBooking) => {
+    if (!confirm(`Are you sure you want to delete booking #${b.referenceCode}? This action cannot be undone.`)) return;
+    try {
+      await deleteBookingFromDb(b.id);
+      if (adminUser) {
+        await logAdminAction(adminUser.email, adminUser.role, 'DELETE_BOOKING', 'Bookings', `Deleted booking #${b.referenceCode}`);
+      }
+      alert('✓ Booking deleted successfully!');
+    } catch (err: any) {
+      alert(`Delete Error: ${err.message}`);
+    }
+  };
+
   const filteredBookings = bookings.filter((b) => {
     const matchesSearch =
       b.referenceCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -82,6 +99,9 @@ export default function AdminBookingsPage() {
     const matchesStatus = statusFilter === 'all' || b.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const totalPages = Math.max(1, Math.ceil(filteredBookings.length / itemsPerPage));
+  const paginatedBookings = filteredBookings.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <div className="space-y-6">
@@ -160,14 +180,14 @@ export default function AdminBookingsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 font-medium">
-              {filteredBookings.length === 0 ? (
+              {paginatedBookings.length === 0 ? (
                 <tr>
                   <td colSpan={9} className="py-12 text-center text-slate-400 font-bold">
                     No bookings found matching filter criteria.
                   </td>
                 </tr>
               ) : (
-                filteredBookings.map((b) => (
+                paginatedBookings.map((b) => (
                   <tr key={b.id} className="hover:bg-slate-50 transition-colors">
                     <td className="p-4 font-black text-[#003366]">#{b.referenceCode}</td>
                     <td className="p-4">
@@ -204,7 +224,7 @@ export default function AdminBookingsPage() {
                         {b.status}
                       </button>
                     </td>
-                    <td className="p-4 text-right space-x-1">
+                    <td className="p-4 text-right space-x-2">
                       <button
                         type="button"
                         onClick={() => {
@@ -218,12 +238,43 @@ export default function AdminBookingsPage() {
                       >
                         <Edit className="w-3.5 h-3.5" />
                       </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteBooking(b)}
+                        className="p-2 rounded-xl bg-red-50 text-red-600 hover:bg-red-600 hover:text-white transition-colors cursor-pointer"
+                        title="Delete Booking"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </td>
                   </tr>
                 ))
               )}
             </tbody>
           </table>
+        </div>
+
+        {/* Pagination Bar */}
+        <div className="p-4 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-slate-600">
+          <span>
+            Page <strong>{currentPage}</strong> of <strong>{totalPages}</strong> ({filteredBookings.length} Total Records)
+          </span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 disabled:opacity-40 cursor-pointer"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1.5 rounded-lg bg-[#003366] text-white hover:bg-[#0B192C] disabled:opacity-40 cursor-pointer"
+            >
+              Next
+            </button>
+          </div>
         </div>
       </div>
 

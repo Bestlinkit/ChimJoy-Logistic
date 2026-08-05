@@ -563,7 +563,7 @@ export const DispatchOperationsPanel: React.FC<DispatchOperationsPanelProps> = (
             className="w-full py-4 rounded-2xl bg-[#9BC800] hover:bg-[#8ab300] text-[#0B192C] font-black text-xs uppercase tracking-wider shadow-lemon transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
             <CheckCircle2 className="w-5 h-5" />
-            <span>{isSaving ? 'Saving Dispatch...' : 'Save Dispatch Operations Panel'}</span>
+            <span>{isSaving ? 'Saving...' : 'SAVE'}</span>
           </button>
         </form>
       </motion.div>
