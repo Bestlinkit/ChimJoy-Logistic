@@ -65,31 +65,21 @@ export async function loginCustomer(email: string, pass?: string): Promise<{ use
     if (!pass) pass = 'Password123!';
     const cred = await signInWithEmailAndPassword(auth, email, pass);
     const userDocRef = doc(db, 'users', cred.user.uid);
-    const fetchDocWithTimeout = (ref: any) =>
-      Promise.race([
-        getDoc(ref),
-        new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000)),
-      ]).catch(() => null);
 
-    const userSnap = await fetchDocWithTimeout(userDocRef);
+    const profile: UserProfile = {
+      uid: cred.user.uid,
+      email: cred.user.email || email,
+      displayName: cred.user.displayName || 'Valued Customer',
+      emailVerified: cred.user.emailVerified,
+      role: 'customer',
+      createdAt: new Date().toISOString(),
+    };
 
-    let profile: UserProfile;
-    if (userSnap && userSnap.exists()) {
-      profile = userSnap.data() as UserProfile;
-      profile.emailVerified = cred.user.emailVerified;
-    } else {
-      profile = {
-        uid: cred.user.uid,
-        email: cred.user.email || email,
-        displayName: cred.user.displayName || 'Valued Customer',
-        emailVerified: cred.user.emailVerified,
-        role: 'customer',
-        createdAt: new Date().toISOString(),
-      };
-      setDoc(userDocRef, profile, { merge: true }).catch((err) =>
-        console.warn('[loginCustomer] Async setDoc warning:', err)
-      );
-    }
+    // Asynchronously save/update profile in background
+    setDoc(userDocRef, profile, { merge: true }).catch((err) =>
+      console.warn('[loginCustomer] Async setDoc warning:', err)
+    );
+
     return { user: profile };
   } catch (err: any) {
     console.error('[Login Error]:', err);

@@ -18,10 +18,8 @@ export async function loginAdmin(email: string, pass: string): Promise<{ user: A
   try {
     const cred = await signInWithEmailAndPassword(auth, email, pass);
     const uid = cred.user.uid;
-    const adminDocRef = doc(db, 'admins', uid);
-    const adminUserDocRef = doc(db, 'admin_users', uid);
 
-    let adminData: AdminUser = {
+    const adminData: AdminUser = {
       uid,
       email: cred.user.email || email,
       name: cred.user.displayName || 'ChimJoy Executive Operations',
@@ -32,30 +30,11 @@ export async function loginAdmin(email: string, pass: string): Promise<{ user: A
       ipAddress: '127.0.0.1',
     };
 
-    try {
-      const fetchDocWithTimeout = (ref: any) =>
-        Promise.race([
-          getDoc(ref),
-          new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000)),
-        ]).catch(() => null);
-
-      const [adminSnap, adminUserSnap] = await Promise.all([
-        fetchDocWithTimeout(adminDocRef),
-        fetchDocWithTimeout(adminUserDocRef),
-      ]);
-
-      if (adminSnap && adminSnap.exists()) {
-        adminData = adminSnap.data() as AdminUser;
-      } else if (adminUserSnap && adminUserSnap.exists()) {
-        adminData = adminUserSnap.data() as AdminUser;
-      } else {
-        // Create initial admin doc asynchronously
-        setDoc(adminDocRef, adminData, { merge: true }).catch(() => {});
-        setDoc(adminUserDocRef, adminData, { merge: true }).catch(() => {});
-      }
-    } catch (docErr: any) {
-      console.warn('[admin-auth-service] Non-blocking Firestore error while handling admin doc:', docErr);
-    }
+    // Asynchronously bootstrap/sync Firestore documents in background without delaying login response
+    const adminDocRef = doc(db, 'admins', uid);
+    const adminUserDocRef = doc(db, 'admin_users', uid);
+    setDoc(adminDocRef, adminData, { merge: true }).catch(() => {});
+    setDoc(adminUserDocRef, adminData, { merge: true }).catch(() => {});
 
     return { user: adminData };
   } catch (err: any) {
