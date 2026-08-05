@@ -40,16 +40,6 @@ export const CommandSearch = () => {
 
   return (
     <>
-      {/* Global Floating Trigger Button */}
-      <button
-        onClick={() => setIsOpen(true)}
-        className="fixed bottom-6 left-6 z-40 hidden sm:flex items-center gap-3 bg-slate-950/90 text-white px-4 py-2.5 rounded-full border border-white/20 shadow-2xl backdrop-blur-md hover:border-[#D4AF37] transition-all text-xs font-semibold"
-      >
-        <Search className="w-4 h-4 text-[#F5D061]" />
-        <span>Global Search</span>
-        <kbd className="px-2 py-0.5 bg-white/10 rounded text-[10px] text-slate-400 font-mono">⌘K</kbd>
-      </button>
-
       {/* Modal Dialog */}
       <ModalDrawer isOpen={isOpen} onClose={() => setIsOpen(false)} maxWidth="xl" title="Global Ecosystem Search">
         <div className="space-y-4 text-[#071325]">
