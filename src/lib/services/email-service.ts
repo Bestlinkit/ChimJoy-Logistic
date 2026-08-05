@@ -25,7 +25,8 @@ export async function sendReactEmail(
   to: string,
   subject: string,
   reactComponent: React.ReactElement,
-  templateName: EmailTemplateName = 'welcome'
+  templateName: EmailTemplateName = 'welcome',
+  metadata?: any
 ) {
   try {
     if (typeof window !== 'undefined') {
@@ -37,6 +38,7 @@ export async function sendReactEmail(
           subject,
           template: templateName,
           text: subject,
+          metadata,
         }),
       });
       const json = await res.json();
@@ -49,6 +51,7 @@ export async function sendReactEmail(
       subject,
       template: templateName,
       reactComponent,
+      metadata,
     });
   } catch (err) {
     console.error('[Email Dispatch Exception]:', err);
@@ -61,7 +64,9 @@ export async function sendWelcomeEmail(to: string, name: string) {
   return sendReactEmail(
     to,
     'Welcome to ChimJoy Logistics — Premier Mobility',
-    React.createElement(WelcomeEmail, { name })
+    React.createElement(WelcomeEmail, { name }),
+    'welcome',
+    { name }
   );
 }
 
@@ -70,7 +75,9 @@ export async function sendVerifyEmail(to: string, name: string, verifyUrl: strin
   return sendReactEmail(
     to,
     'Verify Your ChimJoy Account Email',
-    React.createElement(VerifyEmail, { name, verifyUrl })
+    React.createElement(VerifyEmail, { name, verifyUrl }),
+    'verify-email',
+    { name, link: verifyUrl }
   );
 }
 
@@ -79,7 +86,9 @@ export async function sendLoginVerificationEmail(to: string, name: string, otpCo
   return sendReactEmail(
     to,
     `Your Login Verification Code: ${otpCode} — ChimJoy`,
-    React.createElement(LoginVerificationEmail, { name, code: otpCode })
+    React.createElement(LoginVerificationEmail, { name, code: otpCode }),
+    'verify-email', 
+    { name, link: '#' }
   );
 }
 
@@ -88,7 +97,9 @@ export async function sendForgotPasswordEmail(to: string, name: string, resetUrl
   return sendReactEmail(
     to,
     'Reset Your ChimJoy Account Password',
-    React.createElement(ForgotPasswordEmail, { name, resetUrl })
+    React.createElement(ForgotPasswordEmail, { name, resetUrl }),
+    'forgot-password',
+    { name, resetLink: resetUrl }
   );
 }
 
@@ -97,7 +108,9 @@ export async function sendPasswordChangedEmail(to: string, name: string) {
   return sendReactEmail(
     to,
     'Password Changed Successfully — ChimJoy Logistics',
-    React.createElement(PasswordChangedEmail, { name })
+    React.createElement(PasswordChangedEmail, { name }),
+    'password-changed',
+    { name }
   );
 }
 
@@ -121,7 +134,9 @@ export async function sendBookingReceivedEmail(
       pickupLocation,
       pickupDate,
       estimatedTotal,
-    })
+    }),
+    'booking-received',
+    { customerName: name, bookingRef: refCode, serviceType, pickupAddress: pickupLocation, pickupDate, estimatedTotal }
   );
 }
 
@@ -149,7 +164,9 @@ export async function sendBookingConfirmedEmail(
       driverName,
       driverPhone,
       totalPrice,
-    })
+    }),
+    'booking-confirmed',
+    { customerName: name, bookingRef: refCode, vehicleName, pickupAddress: pickupLocation, pickupDate, driverName, driverPhone, totalPrice }
   );
 }
 
@@ -173,7 +190,9 @@ export async function sendDriverAssignedEmail(
       driverPhone,
       vehicleModel: vehicleName,
       pickupTime,
-    })
+    }),
+    'driver-assigned',
+    { customerName: name, bookingRef: refCode, driverName, driverPhone, vehicleModel: vehicleName, pickupTime }
   );
 }
 
@@ -197,7 +216,9 @@ export async function sendTripReminderEmail(
       pickupTime,
       driverName,
       driverPhone,
-    })
+    }),
+    'trip-reminder',
+    { name, refCode, pickupLocation, pickupTime, driverName, driverPhone }
   );
 }
 
@@ -218,7 +239,9 @@ export async function sendDriverArrivedEmail(
       driverName,
       driverPhone,
       vehicleDetails: vehicleName,
-    })
+    }),
+    'driver-arrived',
+    { name, driverName, driverPhone, vehicleDetails: vehicleName }
   );
 }
 
@@ -237,7 +260,9 @@ export async function sendBookingCompletedEmail(
     React.createElement(BookingCompletedEmail, {
       name,
       refCode,
-    })
+    }),
+    'booking-completed',
+    { name, refCode }
   );
 }
 
@@ -255,7 +280,9 @@ export async function sendBookingCancelledEmail(
       name,
       refCode,
       reason,
-    })
+    }),
+    'booking-cancelled',
+    { name, refCode, reason }
   );
 }
 
@@ -277,7 +304,9 @@ export async function sendContactFormNotificationEmail(
       senderPhone,
       subject,
       message,
-    })
+    }),
+    'contact-form',
+    { senderName, senderEmail, senderPhone, subject, message }
   );
 }
 
@@ -286,7 +315,9 @@ export async function sendNewsletterSubscriptionEmail(to: string) {
   return sendReactEmail(
     to,
     'Welcome to ChimJoy Executive Insiders',
-    React.createElement(NewsletterSubscriptionEmail, { email: to })
+    React.createElement(NewsletterSubscriptionEmail, { email: to }),
+    'newsletter',
+    { email: to }
   );
 }
 
@@ -295,7 +326,9 @@ export async function sendCorporateAccountApprovedEmail(to: string, companyName:
   return sendReactEmail(
     to,
     `Corporate Account Approved for ${companyName} — ChimJoy Logistics`,
-    React.createElement(CorporateAccountApprovedEmail, { companyName, contactName })
+    React.createElement(CorporateAccountApprovedEmail, { companyName, contactName }),
+    'corporate-approved',
+    { companyName, contactName }
   );
 }
 
