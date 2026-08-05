@@ -16,29 +16,7 @@ import { AdminRole, AdminUser } from '@/types/admin';
 
 export async function loginAdmin(email: string, pass: string): Promise<{ user: AdminUser | null; error?: string }> {
   try {
-    let cred;
-    try {
-      cred = await signInWithEmailAndPassword(auth, email, pass);
-    } catch (authErr: any) {
-      // If user does not exist yet in Firebase Auth, create admin account for authorized domain
-      if (
-        authErr.code === 'auth/user-not-found' ||
-        authErr.code === 'auth/invalid-credential' ||
-        authErr.code === 'auth/wrong-password'
-      ) {
-        try {
-          cred = await createUserWithEmailAndPassword(auth, email, pass);
-        } catch (createErr: any) {
-          if (createErr.code === 'auth/email-already-in-use') {
-            return { user: null, error: '[auth/wrong-password] Invalid password for existing administrator account.' };
-          }
-          return { user: null, error: `[${createErr.code || 'AUTH_ERROR'}] ${createErr.message}` };
-        }
-      } else {
-        return { user: null, error: `[${authErr.code || 'FIREBASE_ERROR'}] ${authErr.message}` };
-      }
-    }
-
+    const cred = await signInWithEmailAndPassword(auth, email, pass);
     const uid = cred.user.uid;
     const adminDocRef = doc(db, 'admins', uid);
     const adminUserDocRef = doc(db, 'admin_users', uid);
@@ -58,7 +36,7 @@ export async function loginAdmin(email: string, pass: string): Promise<{ user: A
       const fetchDocWithTimeout = (ref: any) =>
         Promise.race([
           getDoc(ref),
-          new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000)),
+          new Promise<null>((resolve) => setTimeout(() => resolve(null), 2000)),
         ]).catch(() => null);
 
       const [adminSnap, adminUserSnap] = await Promise.all([
@@ -71,11 +49,9 @@ export async function loginAdmin(email: string, pass: string): Promise<{ user: A
       } else if (adminUserSnap && adminUserSnap.exists()) {
         adminData = adminUserSnap.data() as AdminUser;
       } else {
-        // Create in both locations asynchronously without blocking response
-        Promise.all([
-          setDoc(adminDocRef, adminData, { merge: true }),
-          setDoc(adminUserDocRef, adminData, { merge: true }),
-        ]).catch((err) => console.warn('[loginAdmin] Async setDoc warning:', err));
+        // Create initial admin doc asynchronously
+        setDoc(adminDocRef, adminData, { merge: true }).catch(() => {});
+        setDoc(adminUserDocRef, adminData, { merge: true }).catch(() => {});
       }
     } catch (docErr: any) {
       console.warn('[admin-auth-service] Non-blocking Firestore error while handling admin doc:', docErr);
@@ -84,7 +60,19 @@ export async function loginAdmin(email: string, pass: string): Promise<{ user: A
     return { user: adminData };
   } catch (err: any) {
     console.error('[Admin Login Error]:', err);
-    return { user: null, error: `[${err.code || 'ERROR'}] ${err.message || 'Authentication error.'}` };
+    let userMsg = 'Invalid email address or password. Please check your credentials.';
+    if (
+      err.code === 'auth/user-not-found' ||
+      err.code === 'auth/invalid-credential' ||
+      err.code === 'auth/wrong-password'
+    ) {
+      userMsg = 'Invalid email address or password. Please check your credentials.';
+    } else if (err.code === 'auth/too-many-requests') {
+      userMsg = 'Access to this account has been temporarily disabled due to multiple failed login attempts. Please reset your password or try again later.';
+    } else if (err.message) {
+      userMsg = err.message;
+    }
+    return { user: null, error: userMsg };
   }
 }
 

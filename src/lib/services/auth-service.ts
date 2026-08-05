@@ -93,7 +93,19 @@ export async function loginCustomer(email: string, pass?: string): Promise<{ use
     return { user: profile };
   } catch (err: any) {
     console.error('[Login Error]:', err);
-    return { user: null, error: err.message || 'Invalid credentials.' };
+    let userMsg = 'Invalid email address or password. Please check your credentials.';
+    if (
+      err.code === 'auth/user-not-found' ||
+      err.code === 'auth/invalid-credential' ||
+      err.code === 'auth/wrong-password'
+    ) {
+      userMsg = 'Invalid email address or password. Please check your credentials.';
+    } else if (err.code === 'auth/too-many-requests') {
+      userMsg = 'Access to this account has been temporarily disabled due to multiple failed login attempts. Please reset your password or try again later.';
+    } else if (err.message) {
+      userMsg = err.message;
+    }
+    return { user: null, error: userMsg };
   }
 }
 
