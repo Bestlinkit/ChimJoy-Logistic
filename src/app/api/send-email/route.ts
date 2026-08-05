@@ -1,3 +1,4 @@
+import * as React from 'react';
 import { NextResponse } from 'next/server';
 import { sendTransactionalEmail } from '@/lib/email/sendEmail';
 import { EmailTemplateName } from '@/lib/email/types';
@@ -15,21 +16,57 @@ import AdminNewBookingAlertEmail from '@/emails/templates/AdminNewBookingAlertEm
 function getReactComponent(templateName: EmailTemplateName, metadata: any) {
   switch (templateName) {
     case 'welcome':
-      return <WelcomeEmail name={metadata?.name || 'Valued Client'} />;
+      return React.createElement(WelcomeEmail, { name: metadata?.name || 'Valued Client' });
     case 'verify-email':
-      return <VerifyEmail name={metadata?.name || 'Customer'} link={metadata?.link || '#'} />;
+      return React.createElement(VerifyEmail, { name: metadata?.name || 'Customer', link: metadata?.link || '#' });
     case 'forgot-password':
-      return <ForgotPasswordEmail name={metadata?.name || 'Customer'} resetLink={metadata?.resetLink || '#'} />;
+      return React.createElement(ForgotPasswordEmail, { name: metadata?.name || 'Customer', resetLink: metadata?.resetLink || '#' });
     case 'booking-received':
-      return <BookingReceivedEmail customerName={metadata?.customerName || 'Customer'} bookingRef={metadata?.bookingRef || ''} pickupAddress={metadata?.pickupAddress || ''} destination={metadata?.destination || ''} pickupDate={metadata?.pickupDate || ''} pickupTime={metadata?.pickupTime || ''} />;
+      return React.createElement(BookingReceivedEmail, {
+        customerName: metadata?.customerName || 'Customer',
+        bookingRef: metadata?.bookingRef || '',
+        pickupAddress: metadata?.pickupAddress || '',
+        destination: metadata?.destination || '',
+        pickupDate: metadata?.pickupDate || '',
+        pickupTime: metadata?.pickupTime || ''
+      });
     case 'booking-confirmed':
-      return <BookingConfirmedEmail customerName={metadata?.customerName || 'Customer'} bookingRef={metadata?.bookingRef || ''} pickupAddress={metadata?.pickupAddress || ''} destination={metadata?.destination || ''} pickupDate={metadata?.pickupDate || ''} pickupTime={metadata?.pickupTime || ''} vehicleRequested={metadata?.vehicleRequested || ''} totalAmount={metadata?.totalAmount || '0'} />;
+      return React.createElement(BookingConfirmedEmail, {
+        customerName: metadata?.customerName || 'Customer',
+        bookingRef: metadata?.bookingRef || '',
+        pickupAddress: metadata?.pickupAddress || '',
+        destination: metadata?.destination || '',
+        pickupDate: metadata?.pickupDate || '',
+        pickupTime: metadata?.pickupTime || '',
+        vehicleRequested: metadata?.vehicleRequested || '',
+        totalAmount: metadata?.totalAmount || '0'
+      });
     case 'driver-assigned':
-      return <DriverAssignedEmail customerName={metadata?.customerName || 'Customer'} bookingRef={metadata?.bookingRef || ''} driverName={metadata?.driverName || ''} driverPhone={metadata?.driverPhone || ''} vehicleDetails={metadata?.vehicleDetails || ''} licensePlate={metadata?.licensePlate || ''} pickupTime={metadata?.pickupTime || ''} />;
+      return React.createElement(DriverAssignedEmail, {
+        customerName: metadata?.customerName || 'Customer',
+        bookingRef: metadata?.bookingRef || '',
+        driverName: metadata?.driverName || '',
+        driverPhone: metadata?.driverPhone || '',
+        vehicleDetails: metadata?.vehicleDetails || '',
+        licensePlate: metadata?.licensePlate || '',
+        pickupTime: metadata?.pickupTime || ''
+      });
     case 'contact-form':
-      return <ContactFormNotificationEmail senderName={metadata?.senderName || ''} senderEmail={metadata?.senderEmail || ''} senderPhone={metadata?.senderPhone || ''} subject={metadata?.subject || ''} message={metadata?.message || ''} />;
+      return React.createElement(ContactFormNotificationEmail, {
+        senderName: metadata?.senderName || '',
+        senderEmail: metadata?.senderEmail || '',
+        senderPhone: metadata?.senderPhone || '',
+        subject: metadata?.subject || '',
+        message: metadata?.message || ''
+      });
     case 'admin-new-booking':
-      return <AdminNewBookingAlertEmail bookingRef={metadata?.bookingRef || ''} customerName={metadata?.customerName || ''} serviceType={metadata?.serviceType || ''} pickupDate={metadata?.pickupDate || ''} pickupTime={metadata?.pickupTime || ''} />;
+      return React.createElement(AdminNewBookingAlertEmail, {
+        bookingRef: metadata?.bookingRef || '',
+        customerName: metadata?.customerName || '',
+        serviceType: metadata?.serviceType || '',
+        pickupDate: metadata?.pickupDate || '',
+        pickupTime: metadata?.pickupTime || ''
+      });
     default:
       return null;
   }
