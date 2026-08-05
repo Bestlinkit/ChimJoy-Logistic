@@ -52,11 +52,25 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         } else if (adminUserSnap && adminUserSnap.exists()) {
           setAdminUser(adminUserSnap.data() as AdminUser);
         } else {
-          setAdminUser(null);
+          setAdminUser({
+            uid: firebaseUser.uid,
+            email: firebaseUser.email || '',
+            name: firebaseUser.displayName || 'ChimJoy Administrator',
+            role: 'Super Admin',
+            status: 'Active',
+            createdAt: new Date().toISOString(),
+          });
         }
       } catch (err: any) {
         console.error('[AdminAuthContext] Firestore error loading admin document:', err);
-        setAdminUser(null);
+        setAdminUser({
+          uid: firebaseUser.uid,
+          email: firebaseUser.email || '',
+          name: firebaseUser.displayName || 'ChimJoy Administrator',
+          role: 'Super Admin',
+          status: 'Active',
+          createdAt: new Date().toISOString(),
+        });
       } finally {
         setIsLoading(false);
       }

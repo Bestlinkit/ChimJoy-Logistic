@@ -59,7 +59,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             profileData.emailVerified = fbUser.emailVerified;
             setUser(profileData);
           } else {
-            setUser(null);
+            setUser({
+              uid: fbUser.uid,
+              email: fbUser.email || '',
+              displayName: fbUser.displayName || 'Valued Customer',
+              emailVerified: fbUser.emailVerified,
+              role: 'customer',
+              createdAt: new Date().toISOString(),
+            });
           }
           setIsLoading(false);
         },
