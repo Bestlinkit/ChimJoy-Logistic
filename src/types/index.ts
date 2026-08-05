@@ -10,7 +10,10 @@ export interface Vehicle {
   year?: number;
   category?: ServiceCategory;
   image: string;
+  coverImage?: string;
   gallery?: string[];
+  youtubeVideos?: string[];
+  storagePath?: string;
   passengers: number;
   luggage: number;
   transmission: string;

@@ -58,12 +58,45 @@ function AdminShell({ children }: { children: React.ReactNode }) {
     return <>{children}</>;
   }
 
-  // Loading state
+  // Branded Loading State (Requirement 1)
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#07101E] flex flex-col items-center justify-center text-white font-bold gap-3">
-        <div className="w-10 h-10 border-4 border-[#9BC800] border-t-transparent rounded-full animate-spin" />
-        <span className="text-xs uppercase tracking-widest text-[#9BC800] font-mono">Authenticating System...</span>
+      <div className="min-h-screen bg-[#07101E] flex flex-col items-center justify-center text-white px-4 relative overflow-hidden">
+        {/* Subtle Background Radial */}
+        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(#9BC800_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
+
+        <div className="flex flex-col items-center text-center space-y-6 max-w-sm z-10">
+          <div className="relative">
+            <div className="w-20 h-20 rounded-3xl bg-[#0B192C] border border-[#9BC800]/30 shadow-2xl flex items-center justify-center p-3">
+              <img
+                src="/images/logo.png"
+                alt="ChimJoy Logistics Administration"
+                className="w-full h-full object-contain filter drop-shadow-md"
+              />
+            </div>
+            <span className="absolute -top-1 -right-1 flex h-4 w-4">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#9BC800] opacity-75" />
+              <span className="relative inline-flex rounded-full h-4 w-4 bg-[#9BC800]" />
+            </span>
+          </div>
+
+          <div className="space-y-1.5">
+            <span className="text-[10px] font-black uppercase tracking-widest text-[#9BC800] bg-[#9BC800]/15 px-3 py-1 rounded-full border border-[#9BC800]/30 inline-block">
+              PRIVATE ENTERPRISE CONTROL
+            </span>
+            <h2 className="font-display text-lg font-black text-white">
+              Connecting to Secure Administration...
+            </h2>
+            <p className="text-xs text-slate-400 font-medium">
+              Verifying credentials & restoring live snapshot session
+            </p>
+          </div>
+
+          {/* Animated Progress Bar */}
+          <div className="w-full bg-[#0B192C] h-2 rounded-full overflow-hidden border border-white/10 p-0.5">
+            <div className="bg-gradient-to-r from-[#9BC800] via-emerald-400 to-[#9BC800] h-full rounded-full animate-pulse w-full" />
+          </div>
+        </div>
       </div>
     );
   }

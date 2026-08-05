@@ -6,6 +6,7 @@ import { Car, Plus, Search, Edit, Trash2, ShieldCheck, CheckCircle2, XCircle, Wr
 import { subscribeToFleet, saveVehicleToDb, deleteVehicleFromDb } from '@/lib/firebase/services/admin-db-service';
 import { logAdminAction } from '@/lib/firebase/services/admin-audit-service';
 import { useAdminAuth } from '@/context/AdminAuthContext';
+import { uploadVehicleImage } from '@/lib/firebase/services/storage-service';
 import { Vehicle } from '@/types';
 
 export default function AdminFleetPage() {
@@ -251,14 +252,104 @@ export default function AdminFleetPage() {
                   </div>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="font-extrabold text-[#0E1726]">Image Path / URL</label>
+                {/* Cover Image Upload (Requirement 6) */}
+                <div className="space-y-1.5">
+                  <label className="font-extrabold text-[#0E1726]">Cover Image (Firebase Storage Upload)</label>
+                  <div className="flex items-center gap-3">
+                    {editingVehicle.image ? (
+                      <img
+                        src={editingVehicle.image}
+                        alt="Cover Preview"
+                        className="w-16 h-12 object-cover rounded-xl border border-slate-300 shrink-0"
+                      />
+                    ) : null}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                          const tempId = editingVehicle.id || `v_${Date.now()}`;
+                          const { downloadURL, storagePath } = await uploadVehicleImage(file, tempId, false);
+                          setEditingVehicle((prev) => ({
+                            ...prev,
+                            image: downloadURL,
+                            coverImage: downloadURL,
+                            storagePath,
+                          }));
+                        } catch (err) {
+                          console.error('[Upload Error]:', err);
+                          alert('Failed to upload cover image to Firebase Storage.');
+                        }
+                      }}
+                      className="w-full text-xs font-bold bg-[#F4F6F9] p-2.5 rounded-xl border border-slate-300 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-black file:bg-[#0B192C] file:text-white cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                {/* Multiple Gallery Images Upload (Requirement 6) */}
+                <div className="space-y-1.5">
+                  <label className="font-extrabold text-[#0E1726]">Gallery Images (Unlimited Storage Uploads)</label>
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const files = Array.from(e.target.files || []);
+                      if (!files.length) return;
+                      try {
+                        const tempId = editingVehicle.id || `v_${Date.now()}`;
+                        const currentGallery = editingVehicle.gallery || [];
+                        const uploadedUrls: string[] = [];
+
+                        for (const file of files) {
+                          const { downloadURL } = await uploadVehicleImage(file, tempId, true);
+                          uploadedUrls.push(downloadURL);
+                        }
+
+                        setEditingVehicle((prev) => ({
+                          ...prev,
+                          gallery: [...currentGallery, ...uploadedUrls],
+                        }));
+                      } catch (err) {
+                        console.error('[Gallery Upload Error]:', err);
+                      }
+                    }}
+                    className="w-full text-xs font-bold bg-[#F4F6F9] p-2.5 rounded-xl border border-slate-300 file:mr-3 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-black file:bg-[#003366] file:text-white cursor-pointer"
+                  />
+                  {editingVehicle.gallery && editingVehicle.gallery.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {editingVehicle.gallery.map((url, idx) => (
+                        <div key={idx} className="relative w-12 h-12 rounded-lg overflow-hidden border border-slate-200 group">
+                          <img src={url} alt={`Gallery ${idx}`} className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = editingVehicle.gallery?.filter((_, i) => i !== idx);
+                              setEditingVehicle({ ...editingVehicle, gallery: updated });
+                            }}
+                            className="absolute inset-0 bg-red-950/70 text-white font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-[10px]"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* YouTube Video Links (Requirement 7) */}
+                <div className="space-y-1.5">
+                  <label className="font-extrabold text-[#0E1726]">YouTube Video Links (Comma separated URLs)</label>
                   <input
                     type="text"
-                    required
-                    value={editingVehicle.image || ''}
-                    onChange={(e) => setEditingVehicle({ ...editingVehicle, image: e.target.value })}
-                    placeholder="/images/suv_prado_1.jpg"
+                    value={(editingVehicle.youtubeVideos || []).join(', ')}
+                    onChange={(e) => {
+                      const links = e.target.value.split(',').map((s) => s.trim()).filter(Boolean);
+                      setEditingVehicle({ ...editingVehicle, youtubeVideos: links });
+                    }}
+                    placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ, https://youtu.be/..."
                     className="w-full p-3 rounded-xl bg-[#F4F6F9] border border-slate-300 font-bold"
                   />
                 </div>

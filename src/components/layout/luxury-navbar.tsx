@@ -6,8 +6,10 @@ import { usePathname, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Phone, Mail, Menu, X, ArrowRight } from 'lucide-react';
 import { LuxuryButton } from '@/components/ui/luxury-button';
+import { useAuth } from '@/context/AuthContext';
 
 export const LuxuryNavbar = () => {
+  const { user, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -106,14 +108,44 @@ export const LuxuryNavbar = () => {
 
             {/* Right Action CTA Buttons */}
             <div className="hidden lg:flex items-center gap-3">
-              <Link href="/auth/login" className="text-xs font-black text-[#0B192C] hover:text-[#003366] px-3 py-2 transition-colors">
-                Sign In
-              </Link>
-              <Link href="/auth/register">
-                <LuxuryButton variant="navy" size="sm">
-                  Sign Up
-                </LuxuryButton>
-              </Link>
+              {user ? (
+                <div className="flex items-center gap-3">
+                  <Link
+                    href="/account"
+                    className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#0B192C] text-white hover:bg-[#003366] transition-colors border border-white/10"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-[#9BC800] text-[#0B192C] font-black text-xs flex items-center justify-center">
+                      {user.displayName ? user.displayName.charAt(0).toUpperCase() : 'U'}
+                    </div>
+                    <span className="text-xs font-bold truncate max-w-[120px]">
+                      {user.displayName || 'My Account'}
+                    </span>
+                  </Link>
+                  <Link href="/account">
+                    <LuxuryButton variant="navy" size="sm">
+                      Dashboard
+                    </LuxuryButton>
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={logout}
+                    className="text-xs font-black text-slate-600 hover:text-red-600 px-2 py-1.5 transition-colors cursor-pointer"
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <Link href="/auth/login" className="text-xs font-black text-[#0B192C] hover:text-[#003366] px-3 py-2 transition-colors">
+                    Sign In
+                  </Link>
+                  <Link href="/auth/register">
+                    <LuxuryButton variant="navy" size="sm">
+                      Sign Up
+                    </LuxuryButton>
+                  </Link>
+                </>
+              )}
               <Link href="/book/ride">
                 <LuxuryButton variant="lemon" size="sm" icon={<ArrowRight className="w-3.5 h-3.5" />}>
                   Book a Ride

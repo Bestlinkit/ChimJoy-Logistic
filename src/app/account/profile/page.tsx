@@ -7,11 +7,15 @@ import { LuxuryButton } from '@/components/ui/luxury-button';
 import { useAuth } from '@/context/AuthContext';
 import { updateUserProfile } from '@/lib/services/auth-service';
 
+import { uploadProfilePhoto } from '@/lib/firebase/services/storage-service';
+
 export default function ProfilePage() {
   const { user } = useAuth();
   const [displayName, setDisplayName] = useState(user?.displayName || '');
   const [email, setEmail] = useState(user?.email || '');
   const [phone, setPhone] = useState(user?.phoneNumber || '');
+  const [avatarUrl, setAvatarUrl] = useState(user?.photoURL || '');
+  const [isUploading, setIsUploading] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
@@ -19,6 +23,7 @@ export default function ProfilePage() {
       setDisplayName(user.displayName || '');
       setEmail(user.email || '');
       setPhone(user.phoneNumber || '');
+      setAvatarUrl(user.photoURL || '');
     }
   }, [user]);
 
@@ -28,9 +33,26 @@ export default function ProfilePage() {
     await updateUserProfile(user.uid, {
       displayName,
       phoneNumber: phone,
+      photoURL: avatarUrl,
     });
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2500);
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user?.uid) return;
+    setIsUploading(true);
+    try {
+      const { downloadURL } = await uploadProfilePhoto(file, user.uid);
+      setAvatarUrl(downloadURL);
+      await updateUserProfile(user.uid, { photoURL: downloadURL });
+    } catch (err) {
+      console.error('[Avatar Upload Error]:', err);
+      alert('Failed to upload profile photo to Storage.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -44,21 +66,33 @@ export default function ProfilePage() {
           Profile Settings
         </h1>
         <p className="text-xs sm:text-sm text-[#475569] font-medium">
-          Manage your personal profile information and contact details.
+          Manage your personal profile information, photo avatar, and contact details.
         </p>
       </div>
 
       {/* Form Card */}
       <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#0B192C]/10 shadow-sm space-y-6">
-        <div className="flex items-center gap-6 p-4 bg-[#F4F6F9] rounded-2xl border border-[#0B192C]/10">
-          <div className="w-16 h-16 rounded-2xl bg-[#0B192C] text-[#9BC800] flex items-center justify-center font-display font-black text-2xl border-2 border-[#9BC800]">
-            {displayName ? displayName.charAt(0) : 'C'}
+        <div className="flex flex-col sm:flex-row items-center gap-6 p-5 bg-[#F4F6F9] rounded-2xl border border-[#0B192C]/10">
+          <div className="relative">
+            {avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt="Profile Avatar"
+                className="w-20 h-20 rounded-2xl object-cover border-2 border-[#9BC800] shadow-md"
+              />
+            ) : (
+              <div className="w-20 h-20 rounded-2xl bg-[#0B192C] text-[#9BC800] flex items-center justify-center font-display font-black text-3xl border-2 border-[#9BC800]">
+                {displayName ? displayName.charAt(0).toUpperCase() : 'C'}
+              </div>
+            )}
           </div>
-          <div className="space-y-1">
+
+          <div className="space-y-2 text-center sm:text-left">
             <h3 className="font-display font-black text-lg text-[#0E1726]">{displayName || 'Valued Client'}</h3>
-            <div className="flex items-center gap-2 text-xs font-bold text-[#003366]">
-              <CheckCircle2 className="w-4 h-4 text-[#9BC800]" /> Verified Client Profile
-            </div>
+            <label className="px-3.5 py-1.5 rounded-xl bg-[#0B192C] hover:bg-[#003366] text-white text-xs font-black uppercase tracking-wider inline-block cursor-pointer transition-colors shadow">
+              {isUploading ? 'Uploading Image...' : 'Upload Profile Photo'}
+              <input type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
+            </label>
           </div>
         </div>
 

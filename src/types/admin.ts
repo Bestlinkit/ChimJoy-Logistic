@@ -35,6 +35,7 @@ export interface AdminBooking {
   dropoffLocation: string;
   pickupDate: string;
   pickupTime: string;
+  vehicleCategory?: string;
   vehicleId?: string;
   vehicleName?: string;
   vehicleImage?: string;

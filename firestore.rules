@@ -38,15 +38,15 @@ service cloud.firestore {
       allow create, update, delete: if isSignedIn();
     }
 
-    // bookingRequests – signed-in users create and manage
+    // bookingRequests – guest/user create, signed-in manage
     match /bookingRequests/{bookingId} {
-      allow create: if isSignedIn();
+      allow create: if true;
       allow read, update, delete: if isSignedIn();
     }
 
-    // carHireBookings – same rules as bookingRequests
+    // carHireBookings – guest/user create, signed-in manage
     match /carHireBookings/{bookingId} {
-      allow create: if isSignedIn();
+      allow create: if true;
       allow read, update, delete: if isSignedIn();
     }
 
