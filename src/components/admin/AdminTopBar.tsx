@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -40,12 +40,18 @@ export const AdminTopBar: React.FC<AdminTopBarProps> = ({
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-  const currentDateStr = new Date().toLocaleDateString('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  });
+  const [currentDateStr, setCurrentDateStr] = useState<string>('');
+
+  useEffect(() => {
+    setCurrentDateStr(
+      new Date().toLocaleDateString('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      })
+    );
+  }, []);
 
   return (
     <header className="sticky top-0 z-30 h-16 bg-[#0B192C] text-white border-b border-white/10 shadow-md px-4 sm:px-6 flex items-center justify-between">
