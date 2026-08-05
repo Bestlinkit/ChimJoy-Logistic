@@ -30,7 +30,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${jakarta.variable} ${outfit.variable} scroll-smooth`}>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      data-scroll-behavior="smooth"
+      className={`${jakarta.variable} ${outfit.variable} scroll-smooth`}
+    >
       <body suppressHydrationWarning className="bg-[#FAFCFF] text-[#071325] antialiased selection:bg-[#D4AF37] selection:text-slate-950 flex flex-col min-h-screen">
         <LuxuryNavbar />
         <div className="flex-1">{children}</div>
