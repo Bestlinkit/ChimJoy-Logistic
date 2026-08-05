@@ -1,4 +1,4 @@
-import { db } from '../config';
+import { db, auth } from '../config';
 import {
   collection,
   doc,
@@ -192,18 +192,44 @@ export function subscribeToFleet(callback: (vehicles: Vehicle[]) => void) {
 }
 
 export async function saveVehicleToDb(vehicleData: Partial<Vehicle>): Promise<string> {
+  const currentUser = auth.currentUser;
+  console.log('[Firestore Write Attempt] Target Collection: "vehicles"', {
+    currentUser: currentUser
+      ? { uid: currentUser.uid, email: currentUser.email, emailVerified: currentUser.emailVerified }
+      : null,
+    vehicleData,
+  });
+
+  if (!currentUser) {
+    const authErr = new Error('[AUTH_NOT_SIGNED_IN] Cannot write to Firestore. No active Firebase Auth currentUser found.');
+    console.error('[Firestore Write Aborted]:', authErr);
+    throw authErr;
+  }
+
   const fleetRef = collection(db, 'vehicles');
-  if (vehicleData.id) {
-    const ref = doc(db, 'vehicles', vehicleData.id);
-    await setDoc(ref, { ...vehicleData, updatedAt: new Date().toISOString() }, { merge: true });
-    return vehicleData.id;
-  } else {
-    const docRef = await addDoc(fleetRef, {
-      ...vehicleData,
-      isAvailable: vehicleData.isAvailable ?? true,
-      createdAt: new Date().toISOString(),
+  try {
+    if (vehicleData.id) {
+      const ref = doc(db, 'vehicles', vehicleData.id);
+      await setDoc(ref, { ...vehicleData, updatedAt: new Date().toISOString() }, { merge: true });
+      console.log(`[Firestore Write Success] Updated document "vehicles/${vehicleData.id}"`);
+      return vehicleData.id;
+    } else {
+      const docRef = await addDoc(fleetRef, {
+        ...vehicleData,
+        isAvailable: vehicleData.isAvailable ?? true,
+        createdAt: new Date().toISOString(),
+      });
+      console.log(`[Firestore Write Success] Created new document "vehicles/${docRef.id}"`);
+      return docRef.id;
+    }
+  } catch (err: any) {
+    console.error('[Firestore Write Error]:', {
+      code: err.code || 'UNKNOWN_ERROR',
+      message: err.message,
+      stack: err.stack,
+      rawError: err,
     });
-    return docRef.id;
+    throw err;
   }
 }
 

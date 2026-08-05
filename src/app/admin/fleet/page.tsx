@@ -48,22 +48,26 @@ export default function AdminFleetPage() {
 
   const handleSaveVehicle = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingVehicle || !adminUser) return;
+    if (!editingVehicle) return;
     setIsSubmitting(true);
 
     try {
       const docId = await saveVehicleToDb(editingVehicle);
-      await logAdminAction(
-        adminUser.email,
-        adminUser.role,
-        editingVehicle.id ? 'UPDATE_VEHICLE' : 'CREATE_VEHICLE',
-        'Fleet',
-        `Saved vehicle ${editingVehicle.name} (${docId})`
-      );
+      if (adminUser) {
+        await logAdminAction(
+          adminUser.email,
+          adminUser.role,
+          editingVehicle.id ? 'UPDATE_VEHICLE' : 'CREATE_VEHICLE',
+          'Fleet',
+          `Saved vehicle ${editingVehicle.name} (${docId})`
+        ).catch(() => {});
+      }
+      alert('✓ Vehicle saved successfully to Cloud Firestore!');
       setIsModalOpen(false);
       setEditingVehicle(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error('[Save Vehicle Error]:', err);
+      alert(`[FIRESTORE WRITE FAILED] Code: ${err.code || 'UNKNOWN'}\nMessage: ${err.message}`);
     } finally {
       setIsSubmitting(false);
     }

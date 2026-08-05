@@ -30,17 +30,8 @@ for (const key of requiredKeys) {
 export const NEXT_PUBLIC_FIREBASE_VAPID_KEY =
   getCleanEnv(process.env.NEXT_PUBLIC_FIREBASE_VAPID_KEY, "BJt8sl6DdE3a-bbvEvzIJx7Iiu6dxTOQzsZjO5fFwB9fw7EHRs_pNKark5gxR-WVSHiBPm34jRvzVJb5Fzztuz4");
 
-export const app = getApps().length > 0 && getApp().options.projectId ? getApp() : initializeApp(firebaseConfig);
-
-let firestoreDb;
-try {
-  firestoreDb = getFirestore(app);
-} catch (e) {
-  firestoreDb = initializeFirestore(app, {
-    experimentalAutoDetectLongPolling: true,
-  });
-}
-export const db = firestoreDb;
+export const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+export const db = getFirestore(app);
 export const auth = getAuth(app);
 export const storage = getStorage(app);
 
