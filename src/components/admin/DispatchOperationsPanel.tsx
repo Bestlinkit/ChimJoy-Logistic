@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
   X,
@@ -23,10 +23,11 @@ import {
   Building,
 } from 'lucide-react';
 import { AdminBooking, BookingStatus, DispatchSnapshot } from '@/types/admin';
-import { saveBookingDispatchInDb } from '@/lib/firebase/services/admin-db-service';
+import { saveBookingDispatchInDb, subscribeToFleet } from '@/lib/firebase/services/admin-db-service';
 import { uploadVehicleImage } from '@/lib/firebase/services/storage-service';
 import { sendBookingConfirmedEmail, sendDriverAssignedEmail } from '@/lib/services/email-service';
 import { formatCurrency } from '@/lib/utils';
+import { Vehicle } from '@/types';
 
 interface DispatchOperationsPanelProps {
   booking: AdminBooking;
@@ -43,6 +44,14 @@ export const DispatchOperationsPanel: React.FC<DispatchOperationsPanelProps> = (
 }) => {
   const existingDispatch = booking.dispatch;
 
+  const [fleetVehicles, setFleetVehicles] = useState<Vehicle[]>([]);
+  const [selectedVehicleId, setSelectedVehicleId] = useState<string>('');
+
+  useEffect(() => {
+    const unsub = subscribeToFleet((data) => setFleetVehicles(data));
+    return () => unsub();
+  }, []);
+
   // Section 2 & 3: Vehicle Assignment & Images
   const [vehicleName, setVehicleName] = useState(existingDispatch?.vehicle?.name || booking.vehicleName || 'Toyota Land Cruiser Prado TX-L');
   const [vehicleCategory, setVehicleCategory] = useState(existingDispatch?.vehicle?.category || booking.vehicleCategory || 'SUVs');
@@ -56,6 +65,19 @@ export const DispatchOperationsPanel: React.FC<DispatchOperationsPanelProps> = (
   const [galleryImages, setGalleryImages] = useState<string[]>(existingDispatch?.vehicle?.galleryImages || ['/images/suv_prado_1.jpg']);
   const [youtubeVideo, setYoutubeVideo] = useState(existingDispatch?.vehicle?.youtubeVideo || '');
   const [vehicleFeatures, setVehicleFeatures] = useState<string[]>(existingDispatch?.vehicle?.features || ['WiFi', 'Leather Seats', 'AC', 'Full Tint']);
+
+  const handleSelectFleetVehicle = (vId: string) => {
+    setSelectedVehicleId(vId);
+    const target = fleetVehicles.find((v) => v.id === vId);
+    if (target) {
+      setVehicleName(target.name);
+      setVehicleCategory(target.categoryName || 'SUVs');
+      setCoverImage(target.image || target.coverImage || '/images/suv_prado_2.jpg');
+      setDailyRate(target.pricePerDay || 85000);
+      setMaxPassengers(target.passengers || 7);
+      setVehicleFeatures(target.features || ['Air Conditioning', 'Chauffeur Included']);
+    }
+  };
 
   // Section 4: Driver Assignment
   const [driverName, setDriverName] = useState(existingDispatch?.driver?.name || booking.driverName || 'Chinedu Okeke');
@@ -185,7 +207,7 @@ export const DispatchOperationsPanel: React.FC<DispatchOperationsPanelProps> = (
         },
       };
 
-      await saveBookingDispatchInDb(booking.id, dispatchSnapshot, status);
+      await saveBookingDispatchInDb(booking.id, dispatchSnapshot, status, selectedVehicleId);
 
       // Trigger automatic customer notification email if enabled
       if (notifyCustomer && sendEmail && booking.customerEmail) {
@@ -280,9 +302,27 @@ export const DispatchOperationsPanel: React.FC<DispatchOperationsPanelProps> = (
 
           {/* SECTION 2 & 3: Vehicle Assignment & Images */}
           <div className="p-5 rounded-2xl bg-white/5 border border-white/10 space-y-4">
-            <h3 className="font-display text-sm font-extrabold text-[#9BC800] uppercase tracking-wider flex items-center gap-2">
-              <Car className="w-4 h-4" /> 2 & 3. Vehicle Assignment & Media
-            </h3>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-3">
+              <h3 className="font-display text-sm font-extrabold text-[#9BC800] uppercase tracking-wider flex items-center gap-2">
+                <Car className="w-4 h-4" /> 2 & 3. Vehicle Assignment & Media
+              </h3>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] text-slate-300 font-extrabold uppercase">Select Fleet Inventory:</span>
+                <select
+                  value={selectedVehicleId}
+                  onChange={(e) => handleSelectFleetVehicle(e.target.value)}
+                  className="p-2 rounded-xl bg-white/10 border border-white/20 text-white font-bold text-xs"
+                >
+                  <option value="" className="bg-[#0B192C]">-- Choose Available Vehicle --</option>
+                  {fleetVehicles.map((v) => (
+                    <option key={v.id} value={v.id} className="bg-[#0B192C]">
+                      {v.name} ({v.categoryName || 'Fleet'}) — ₦{v.pricePerDay.toLocaleString()}/day {v.isAvailable ? '✓ Available' : '⚠ On Hire'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1">
                 <label className="font-bold text-slate-300">Vehicle Name</label>

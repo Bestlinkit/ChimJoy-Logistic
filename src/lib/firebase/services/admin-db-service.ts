@@ -104,7 +104,8 @@ export async function assignDriverToBookingInDb(
 export async function saveBookingDispatchInDb(
   bookingId: string,
   dispatchSnapshot: any,
-  newStatus: BookingStatus
+  newStatus: BookingStatus,
+  vehicleId?: string
 ): Promise<void> {
   const ref = doc(db, 'bookingRequests', bookingId);
   await updateDoc(ref, {
@@ -118,6 +119,16 @@ export async function saveBookingDispatchInDb(
     totalAmount: dispatchSnapshot?.pricing?.total || 0,
     updatedAt: new Date().toISOString(),
   });
+
+  // Sync vehicle availability in Firestore vehicles collection
+  if (vehicleId) {
+    const vehicleRef = doc(db, 'vehicles', vehicleId);
+    if (['Trip Completed', 'Closed', 'Cancelled'].includes(newStatus)) {
+      await updateDoc(vehicleRef, { isAvailable: true }).catch(() => null);
+    } else if (['Confirmed', 'Driver Assigned', 'Vehicle Ready', 'Driver En Route', 'Trip In Progress'].includes(newStatus)) {
+      await updateDoc(vehicleRef, { isAvailable: false }).catch(() => null);
+    }
+  }
 }
 
 export async function assignVehicleAndDriverInDb(
@@ -252,12 +263,24 @@ export async function saveDriverToDb(driverData: Partial<AdminDriver>): Promise<
 // 4. CUSTOMERS REALTIME LISTENER & ACTIONS
 // ============================================================================
 export function subscribeToCustomers(callback: (customers: AdminCustomer[]) => void) {
-  const customersRef = collection(db, 'customers');
-  return onSnapshot(customersRef, (snapshot) => {
-    const list: AdminCustomer[] = snapshot.docs.map((docSnap) => ({
-      id: docSnap.id,
-      ...(docSnap.data() as Omit<AdminCustomer, 'id'>),
-    }));
+  const usersRef = collection(db, 'users');
+  return onSnapshot(usersRef, (snapshot) => {
+    const list: AdminCustomer[] = snapshot.docs.map((docSnap) => {
+      const d = docSnap.data();
+      return {
+        id: docSnap.id,
+        name: d.displayName || d.name || 'Registered Customer',
+        email: d.email || 'customer@chimjoy.ng',
+        phone: d.phoneNumber || d.phone || '+234 800 000 0000',
+        totalTrips: d.totalTrips || 0,
+        totalBookings: d.totalBookings || d.totalTrips || 0,
+        totalSpent: d.totalSpent || 0,
+        isVIP: !!d.isVIP,
+        isBlacklisted: !!d.isBlacklisted,
+        notes: d.notes || '',
+        createdAt: d.createdAt || new Date().toISOString(),
+      };
+    });
     callback(list);
   });
 }

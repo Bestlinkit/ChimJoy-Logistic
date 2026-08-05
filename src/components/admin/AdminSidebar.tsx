@@ -59,7 +59,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
     { name: 'Messages', href: '/admin/messages', icon: MessageSquare, badge: unreadMessagesCount > 0 ? unreadMessagesCount : undefined },
     { name: 'Reviews', href: '/admin/reviews', icon: Star },
     { name: 'Dispatch Calendar', href: '/admin/calendar', icon: Calendar },
-    { name: 'Live Map', href: '/admin/map', icon: MapPin },
+    { name: 'Operations Hub', href: '/admin/map', icon: BarChart3 },
     { name: 'Reports & Analytics', href: '/admin/reports', icon: BarChart3 },
     { name: 'Notifications', href: '/admin/notifications', icon: Bell, badge: unreadNotifsCount > 0 ? unreadNotifsCount : undefined },
     { name: 'Settings', href: '/admin/settings', icon: Settings },

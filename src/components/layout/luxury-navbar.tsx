@@ -7,9 +7,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Phone, Mail, Menu, X, ArrowRight } from 'lucide-react';
 import { LuxuryButton } from '@/components/ui/luxury-button';
 import { useAuth } from '@/context/AuthContext';
+import { useAdminAuth } from '@/context/AdminAuthContext';
 
 export const LuxuryNavbar = () => {
   const { user, logout } = useAuth();
+  const { adminUser, logout: adminLogout } = useAdminAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
@@ -108,8 +110,32 @@ export const LuxuryNavbar = () => {
 
             {/* Right Action CTA Buttons */}
             <div className="hidden lg:flex items-center gap-3">
-              {user ? (
-                <div className="flex items-center gap-3">
+              {adminUser ? (
+                <div className="flex items-center gap-2">
+                  <Link href="/admin">
+                    <LuxuryButton variant="navy" size="sm">
+                      Admin Dashboard
+                    </LuxuryButton>
+                  </Link>
+                  <Link href="/admin/fleet" className="text-xs font-black text-[#0B192C] hover:text-[#003366] px-2 py-1.5">
+                    Fleet
+                  </Link>
+                  <Link href="/admin/bookings" className="text-xs font-black text-[#0B192C] hover:text-[#003366] px-2 py-1.5">
+                    Bookings
+                  </Link>
+                  <Link href="/admin/customers" className="text-xs font-black text-[#0B192C] hover:text-[#003366] px-2 py-1.5">
+                    Customers
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={adminLogout}
+                    className="text-xs font-black text-slate-600 hover:text-red-600 px-2 py-1.5 transition-colors cursor-pointer"
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : user ? (
+                <div className="flex items-center gap-2">
                   <Link
                     href="/account"
                     className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#0B192C] text-white hover:bg-[#003366] transition-colors border border-white/10"
@@ -125,6 +151,9 @@ export const LuxuryNavbar = () => {
                     <LuxuryButton variant="navy" size="sm">
                       Dashboard
                     </LuxuryButton>
+                  </Link>
+                  <Link href="/account/bookings" className="text-xs font-black text-[#0B192C] hover:text-[#003366] px-2 py-1.5">
+                    My Bookings
                   </Link>
                   <button
                     type="button"
