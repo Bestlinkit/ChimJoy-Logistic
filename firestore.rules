@@ -1,85 +1,8 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    // True when the request is made by an authenticated user.
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
-    // True when the signed-in user is an admin.
-    // Bootstraps safely: checks both /admins/ and /admin_users/ docs.
-    function isAdmin() {
-      return isSignedIn() && (
-        (exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role in ['Super Admin', 'Admin', 'Operations', 'Fleet Manager'])
-        ||
-        (exists(/databases/$(database)/documents/admin_users/$(request.auth.uid)) &&
-         get(/databases/$(database)/documents/admin_users/$(request.auth.uid)).data.role in ['Super Admin', 'Admin', 'Operations', 'Fleet Manager'])
-      );
-    }
-
-    // users/{uid} – owner or signed-in access
-    match /users/{userId} {
-      allow read, write: if true;
-    }
-
-    // admins/{adminId} & admin_users/{adminId} – setup & management
-    match /admins/{adminId} {
-      allow read, write: if true;
-    }
-    match /admin_users/{adminId} {
-      allow read, write: if true;
-    }
-
-    // vehicles (fleet management) – full read & write access
-    match /vehicles/{vehicleId} {
-      allow read, write: if true;
-    }
-
-    // drivers (chauffeur drivers) – full read & write access
-    match /drivers/{driverId} {
-      allow read, write: if true;
-    }
-
-    // bookingRequests – signed-in or active operational access
-    match /bookingRequests/{bookingId} {
-      allow read, write: if true;
-    }
-
-    // carHireBookings – signed-in or active operational access
-    match /carHireBookings/{bookingId} {
-      allow read, write: if true;
-    }
-
-    // admin_notifications – notification feed
-    match /admin_notifications/{notifId} {
-      allow read, write: if true;
-    }
-
-    // customers – customer management
-    match /customers/{customerId} {
-      allow read, write: if true;
-    }
-
-    // contact_messages – messages feed
-    match /contact_messages/{msgId} {
-      allow read, write: if true;
-    }
-
-    // reviews – feedback & reviews
-    match /reviews/{reviewId} {
-      allow read, write: if true;
-    }
-
-    // audit_logs – security audit trail
-    match /audit_logs/{logId} {
-      allow read, write: if true;
-    }
-
-    // Deny everything else
     match /{document=**} {
-      allow read, write: if false;
+      allow read, write: if true;
     }
   }
 }

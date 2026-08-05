@@ -36,15 +36,22 @@ export default function FirebaseSystemHealthPage() {
     setAdminDocStatus('pending');
     setAdminDocError(null);
 
-    // 1. Test Firestore Read/Write Ping
+    // 1. Test Firestore Read/Write Ping with addDoc on firestore_test
     try {
-      const pingRef = doc(db, 'system_health', user ? user.uid : 'anonymous_test');
-      await setDoc(pingRef, { timestamp: new Date().toISOString(), status: 'OK' });
-      await getDoc(pingRef);
-      await deleteDoc(pingRef);
+      const { collection, addDoc, serverTimestamp } = await import('firebase/firestore');
+      const testRef = await addDoc(collection(db, 'firestore_test'), {
+        status: 'connected',
+        createdAt: serverTimestamp(),
+        testedBy: user ? user.email : 'Anonymous Test',
+      });
+      console.log(`[Firestore Direct Write Success] Written document ID: firestore_test/${testRef.id}`);
       setFirestoreStatus('success');
     } catch (err: any) {
-      console.error('[System Diagnostic] Firestore Ping Error:', err);
+      console.error('[System Diagnostic] Firestore Direct Write Error:', {
+        code: err.code || 'UNKNOWN',
+        message: err.message,
+        stack: err.stack,
+      });
       setFirestoreStatus('error');
       setFirestoreError(`[${err.code || 'UNKNOWN'}] ${err.message}`);
     }
