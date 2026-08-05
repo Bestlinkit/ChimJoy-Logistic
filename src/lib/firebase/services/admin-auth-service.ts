@@ -34,6 +34,9 @@ export async function loginAdmin(email: string, pass: string): Promise<{ user: A
           try {
             cred = await createUserWithEmailAndPassword(auth, email, pass);
           } catch (createErr: any) {
+            if (createErr.code === 'auth/email-already-in-use') {
+              return { user: null, error: '[auth/wrong-password] Invalid password for existing administrator account.' };
+            }
             return { user: null, error: `[${createErr.code || 'AUTH_ERROR'}] ${createErr.message}` };
           }
         } else {
