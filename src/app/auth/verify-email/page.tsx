@@ -7,7 +7,6 @@ import { motion } from 'framer-motion';
 import { ShieldCheck, ArrowRight, RefreshCw, CheckCircle2 } from 'lucide-react';
 import { LuxuryButton } from '@/components/ui/luxury-button';
 import { auth } from '@/lib/firebase/config';
-import { sendEmailVerification } from 'firebase/auth';
 
 function VerifyEmailContent() {
   const router = useRouter();
@@ -30,26 +29,36 @@ function VerifyEmailContent() {
   }, [router]);
 
   const handleResend = async () => {
-    if (!currentUser && auth.currentUser) {
-      setCurrentUser(auth.currentUser);
-    }
-    const targetUser = currentUser || auth.currentUser;
-    if (!targetUser) {
-      setMessage('No active account session found. Please sign in first.');
+    const targetEmail = currentUser?.email || emailParam;
+    if (!targetEmail) {
+      setMessage('No email address found. Please register again.');
       return;
     }
     setIsSending(true);
     setMessage(null);
     try {
-      await sendEmailVerification(targetUser);
-      setMessage('Official verification link sent to your email inbox! Please check your email.');
+      const res = await fetch('/api/auth/resend-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: targetEmail,
+          name: currentUser?.displayName || 'Valued Customer',
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        setMessage(json.error || 'Failed to send verification email. Please try again.');
+      } else {
+        setMessage('Official verification link sent to your email inbox! Please check your email.');
+      }
     } catch (err: any) {
       console.error('[Resend Verification Error]:', err);
-      setMessage(err.message || 'Failed to send verification email. Please try again.');
+      setMessage('Failed to send verification email. Please try again.');
     } finally {
       setIsSending(false);
     }
   };
+
 
   const handleRefreshStatus = async () => {
     setIsChecking(true);
