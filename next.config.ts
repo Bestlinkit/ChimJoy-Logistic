@@ -35,11 +35,8 @@ const nextConfig: NextConfig = {
     maxInactiveAge: 60 * 1000,
     pagesBufferLength: 10,
   },
-  webpack: (config, { dev }) => {
-    if (dev) {
-      config.output.chunkLoadingGlobal = 'webpackChunk_chimjoy';
-    }
-    return config;
+  devIndicators: {
+    appIsrStatus: false,
   },
 };
 
