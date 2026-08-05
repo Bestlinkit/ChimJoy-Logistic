@@ -18,9 +18,9 @@ function getReactComponent(templateName: EmailTemplateName, metadata: any) {
     case 'welcome':
       return React.createElement(WelcomeEmail, { name: metadata?.name || 'Valued Client' });
     case 'verify-email':
-      return React.createElement(VerifyEmail, { name: metadata?.name || 'Customer', link: metadata?.link || '#' });
+      return React.createElement(VerifyEmail, { name: metadata?.name || 'Customer', verifyUrl: metadata?.link || '#' });
     case 'forgot-password':
-      return React.createElement(ForgotPasswordEmail, { name: metadata?.name || 'Customer', resetLink: metadata?.resetLink || '#' });
+      return React.createElement(ForgotPasswordEmail, { name: metadata?.name || 'Customer', resetUrl: metadata?.resetLink || '#' });
     case 'booking-received':
       return React.createElement(BookingReceivedEmail, {
         customerName: metadata?.customerName || 'Customer',

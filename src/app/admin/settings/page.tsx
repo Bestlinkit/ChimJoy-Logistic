@@ -54,7 +54,7 @@ export default function AdminSettingsPage() {
       setPasswordStatus({ type: 'success', msg: 'Password updated successfully!' });
       setNewPassword('');
       setConfirmPassword('');
-      await logAdminAction(adminUser?.email || 'admin', adminUser?.role || 'admin', 'UPDATE_PASSWORD', 'Settings', 'Admin changed their password');
+      await logAdminAction(adminUser?.email || 'admin', adminUser?.role || 'Admin', 'UPDATE_PASSWORD', 'Settings', 'Admin changed their password');
     } catch (err: any) {
       console.error('[Update Password Error]:', err);
       if (err.code === 'auth/requires-recent-login') {

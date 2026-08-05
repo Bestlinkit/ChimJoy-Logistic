@@ -442,9 +442,10 @@ function RideBookingContent() {
                 </LuxuryButton>
               </div>
             </form>
-            </div>
-          </motion.section>
-        )}
+          </div>
+        </div>
+      </motion.section>
+    )}
       </AnimatePresence>
 
       {/* ── VEHICLE SELECTION ────────────────────────────────────────── */}
@@ -580,8 +581,9 @@ function RideBookingContent() {
             })}
               </div>
             </div>
-          </motion.section>
-        )}
+          </div>
+        </motion.section>
+      )}
       </AnimatePresence>
 
       {/* ── CONTACT FORM ─────────────────────────────────────────────── */}
