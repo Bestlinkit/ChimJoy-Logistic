@@ -35,9 +35,6 @@ const nextConfig: NextConfig = {
     maxInactiveAge: 60 * 1000,
     pagesBufferLength: 10,
   },
-  devIndicators: {
-    appIsrStatus: false,
-  },
 };
 
 export default nextConfig;

@@ -97,11 +97,7 @@ export const LuxuryNavbar = () => {
                   >
                     {link.name}
                     {isActive && (
-                      <motion.div
-                        layoutId="activeWhiteNavCompact"
-                        className="absolute bottom-0 left-3 right-3 h-0.5 bg-[#9BC800] rounded-full shadow-lemon"
-                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                      />
+                      <div className="absolute bottom-0 left-3 right-3 h-0.5 bg-[#9BC800] rounded-full shadow-lemon" />
                     )}
                   </Link>
                 );
