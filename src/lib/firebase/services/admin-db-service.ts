@@ -101,77 +101,29 @@ export async function assignDriverToBookingInDb(
   });
 }
 
-// Initial Fleet Seed Data
-const INITIAL_SEED_VEHICLES: Vehicle[] = [
-  {
-    id: 'vehicle_prado_txl',
-    name: 'Toyota Land Cruiser Prado TX-L',
-    categoryName: 'SUVs',
-    categoryId: 'cat-suv',
-    image: '/images/suv_prado_1.jpg',
-    coverImage: '/images/suv_prado_1.jpg',
-    gallery: ['/images/suv_prado_1.jpg', '/images/fleet_prado_black.jpg'],
-    pricePerDay: 120000,
-    passengers: 7,
-    luggage: 5,
-    transmission: 'Automatic',
-    fuelType: 'Petrol',
-    features: ['Chchauffeur Included', 'Air Conditioning', 'Leather Seats', 'Bulletproof Tint'],
-    description: 'Executive armored & luxury Prado SUV for high-profile transport in South-East Nigeria.',
-    isAvailable: true,
-  },
-  {
-    id: 'vehicle_sclass_550',
-    name: 'Mercedes-Benz S-Class S550',
-    categoryName: 'Luxury Vehicles',
-    categoryId: 'cat-luxury',
-    image: '/images/fleet_mercedes_sclass.jpg',
-    coverImage: '/images/fleet_mercedes_sclass.jpg',
-    gallery: ['/images/fleet_mercedes_sclass.jpg'],
-    pricePerDay: 250000,
-    passengers: 4,
-    luggage: 3,
-    transmission: 'Automatic',
-    fuelType: 'Petrol',
-    features: ['VIP Chauffeur', 'Massage Seats', 'Ambient Lighting', 'Soft Close Doors'],
-    description: 'Ultra-luxury flagship sedan for corporate dignitaries, weddings, and executive airport transfers.',
-    isAvailable: true,
-  },
-  {
-    id: 'vehicle_hiace_bus',
-    name: 'Toyota HiAce Executive Coaster Mini Bus',
-    categoryName: 'Mini Bus / HiAce',
-    categoryId: 'cat-bus',
-    image: '/images/fleet_hiace_bus.jpg',
-    coverImage: '/images/fleet_hiace_bus.jpg',
-    gallery: ['/images/fleet_hiace_bus.jpg'],
-    pricePerDay: 95000,
-    passengers: 15,
-    luggage: 12,
-    transmission: 'Manual',
-    fuelType: 'Diesel',
-    features: ['Group Travel', 'Dual AC Units', 'Reclining Seats', 'High Ceiling'],
-    description: 'Premium 15-seater executive mini bus for group transport, delegational travel, and event shuttles.',
-    isAvailable: true,
-  },
-  {
-    id: 'vehicle_hilux_truck',
-    name: 'Toyota Hilux Double Cab 4x4',
-    categoryName: 'Logistics Vans',
-    categoryId: 'cat-truck',
-    image: '/images/fleet_hilux_pickup.jpg',
-    coverImage: '/images/fleet_hilux_pickup.jpg',
-    gallery: ['/images/fleet_hilux_pickup.jpg'],
-    pricePerDay: 80000,
-    passengers: 5,
-    luggage: 8,
-    transmission: 'Automatic',
-    fuelType: 'Diesel',
-    features: ['All-Terrain 4x4', 'Heavy Duty Load Canopy', 'Escort Ready'],
-    description: 'Rugged 4x4 double cab for heavy cargo dispatch, field operations, and security logistics.',
-    isAvailable: true,
-  },
-];
+export async function assignVehicleAndDriverInDb(
+  bookingId: string,
+  vehicleId: string,
+  vehicleName: string,
+  driverId: string,
+  driverName: string,
+  driverPhone: string
+): Promise<void> {
+  const ref = doc(db, 'bookingRequests', bookingId);
+  await updateDoc(ref, {
+    vehicleId,
+    vehicleName,
+    driverId,
+    driverName,
+    driverPhone,
+    status: 'Confirmed',
+    updatedAt: new Date().toISOString(),
+  });
+}
+
+// ============================================================================
+// 2. FLEET MANAGEMENT & REALTIME ACTIONS
+// ============================================================================
 
 export function subscribeToFleet(callback: (vehicles: Vehicle[]) => void) {
   const fleetRef = collection(db, 'vehicles');
