@@ -29,8 +29,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const pathname = usePathname();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+    let unsubProfile: (() => void) | undefined;
+
+    const unsubscribe = onAuthStateChanged(auth, (fbUser) => {
       setFirebaseUser(fbUser);
+
+      // Clean up previous profile listener if any
+      if (unsubProfile) {
+        unsubProfile();
+        unsubProfile = undefined;
+      }
 
       if (!fbUser) {
         setUser(null);
@@ -41,9 +49,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
 
-      // Subscribe to customer Firestore profile
+      // Subscribe to customer Firestore profile after auth state is confirmed
       const userRef = doc(db, 'users', fbUser.uid);
-      const unsubProfile = onSnapshot(
+      unsubProfile = onSnapshot(
         userRef,
         (snap) => {
           if (snap.exists()) {
@@ -51,7 +59,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             profileData.emailVerified = fbUser.emailVerified;
             setUser(profileData);
           } else {
-            // Document doesn't exist yet – not an error, will be created on next write
             setUser(null);
           }
           setIsLoading(false);
@@ -62,11 +69,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setIsLoading(false);
         }
       );
-
-      return () => unsubProfile();
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubscribe();
+      if (unsubProfile) {
+        unsubProfile();
+      }
+    };
   }, [pathname, router]);
 
   const handleLogout = async () => {

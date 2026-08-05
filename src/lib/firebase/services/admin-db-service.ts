@@ -30,45 +30,50 @@ import { Vehicle } from '@/types';
 // ============================================================================
 export function subscribeToBookings(callback: (bookings: AdminBooking[]) => void) {
   const bookingsRef = collection(db, 'bookingRequests');
-  const q = query(bookingsRef, orderBy('createdAt', 'desc'));
-  return onSnapshot(bookingsRef, (snapshot) => {
-    const list: AdminBooking[] = snapshot.docs.map((docSnap) => {
-      const data = docSnap.data();
-      return {
-        id: docSnap.id,
-        referenceCode: data.referenceCode || `CJ-${docSnap.id.substring(0, 5).toUpperCase()}`,
-        serviceType: data.serviceType || 'Executive Ride',
-        customerName: data.customerName || 'Valued Client',
-        customerEmail: data.customerEmail || 'client@company.ng',
-        customerPhone: data.customerPhone || '+234 800 000 0000',
-        pickupLocation: data.pickupLocation || 'Owerri',
-        dropoffLocation: data.dropoffLocation || 'Destination',
-        pickupDate: data.pickupDate || new Date().toISOString().split('T')[0],
-        pickupTime: data.pickupTime || '09:00',
-        vehicleId: data.vehicleId || '',
-        vehicleName: data.vehicleName || 'Toyota Prado SUV',
-        vehicleImage: data.vehicleImage || '/images/suv_prado_1.jpg',
-        driverId: data.driverId || '',
-        driverName: data.driverName || '',
-        driverPhone: data.driverPhone || '',
-        status: (data.status as BookingStatus) || 'Pending',
-        estimatedPrice: data.estimatedPrice || data.totalAmount || 50000,
-        totalAmount: data.totalAmount || data.estimatedPrice || 50000,
-        rentalDurationDays: data.rentalDurationDays || 1,
-        isSelfDrive: data.isSelfDrive || false,
-        insuranceSelected: data.insuranceSelected || false,
-        specialRequests: data.specialRequests || '',
-        flightNumber: data.flightNumber || '',
-        notes: data.notes || '',
-        createdAt: data.createdAt || new Date().toISOString(),
-        updatedAt: data.updatedAt || new Date().toISOString(),
-      };
-    });
+  return onSnapshot(
+    bookingsRef,
+    (snapshot) => {
+      const list: AdminBooking[] = snapshot.docs.map((docSnap) => {
+        const data = docSnap.data();
+        return {
+          id: docSnap.id,
+          referenceCode: data.referenceCode || `CJ-${docSnap.id.substring(0, 5).toUpperCase()}`,
+          serviceType: data.serviceType || 'Executive Ride',
+          customerName: data.customerName || 'Valued Client',
+          customerEmail: data.customerEmail || 'client@company.ng',
+          customerPhone: data.customerPhone || '+234 800 000 0000',
+          pickupLocation: data.pickupLocation || 'Owerri',
+          dropoffLocation: data.dropoffLocation || 'Destination',
+          pickupDate: data.pickupDate || new Date().toISOString().split('T')[0],
+          pickupTime: data.pickupTime || '09:00',
+          vehicleId: data.vehicleId || '',
+          vehicleName: data.vehicleName || 'Toyota Prado SUV',
+          vehicleImage: data.vehicleImage || '/images/suv_prado_1.jpg',
+          driverId: data.driverId || '',
+          driverName: data.driverName || '',
+          driverPhone: data.driverPhone || '',
+          status: (data.status as BookingStatus) || 'Pending',
+          estimatedPrice: data.estimatedPrice || data.totalAmount || 50000,
+          totalAmount: data.totalAmount || data.estimatedPrice || 50000,
+          rentalDurationDays: data.rentalDurationDays || 1,
+          isSelfDrive: data.isSelfDrive || false,
+          insuranceSelected: data.insuranceSelected || false,
+          specialRequests: data.specialRequests || '',
+          flightNumber: data.flightNumber || '',
+          notes: data.notes || '',
+          createdAt: data.createdAt || new Date().toISOString(),
+          updatedAt: data.updatedAt || new Date().toISOString(),
+        };
+      });
 
-    // Sort client-side if missing field
-    list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    callback(list);
-  });
+      list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      callback(list);
+    },
+    (err) => {
+      console.error('[subscribeToBookings Error]:', err);
+      callback([]);
+    }
+  );
 }
 
 export async function updateBookingStatusInDb(bookingId: string, status: BookingStatus, notes?: string): Promise<void> {
