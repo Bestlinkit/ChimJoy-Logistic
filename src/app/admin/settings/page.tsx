@@ -1,9 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Settings, Building2, Phone, Mail, MapPin, Key, DollarSign, Save, ShieldCheck } from 'lucide-react';
+import { Settings, Building2, Phone, Mail, MapPin, Key, DollarSign, Save, ShieldCheck, Lock } from 'lucide-react';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 import { logAdminAction } from '@/lib/firebase/services/admin-audit-service';
+import { auth } from '@/lib/firebase/config';
+import { updatePassword } from 'firebase/auth';
 
 export default function AdminSettingsPage() {
   const { adminUser } = useAdminAuth();
@@ -12,6 +14,10 @@ export default function AdminSettingsPage() {
   const [companyEmail, setCompanyEmail] = useState('chimjoylimited@gmail.com');
   const [officeAddress, setOfficeAddress] = useState('Plot 12 Executive Layout, Off Bank Road, Owerri, Imo State, Nigeria');
   const [baseAirportRate, setBaseAirportRate] = useState(35000);
+
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [passwordStatus, setPasswordStatus] = useState<{type: 'success' | 'error' | '', msg: string}>({type: '', msg: ''});
 
   const [isSaved, setIsSaved] = useState(false);
 
@@ -22,6 +28,41 @@ export default function AdminSettingsPage() {
     await logAdminAction(adminUser.email, adminUser.role, 'UPDATE_SETTINGS', 'Settings', 'Updated company operational settings & rates');
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 3000);
+  };
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordStatus({ type: '', msg: '' });
+
+    if (newPassword !== confirmPassword) {
+      setPasswordStatus({ type: 'error', msg: 'Passwords do not match.' });
+      return;
+    }
+    if (newPassword.length < 8) {
+      setPasswordStatus({ type: 'error', msg: 'Password must be at least 8 characters long.' });
+      return;
+    }
+
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      setPasswordStatus({ type: 'error', msg: 'No active session found.' });
+      return;
+    }
+
+    try {
+      await updatePassword(currentUser, newPassword);
+      setPasswordStatus({ type: 'success', msg: 'Password updated successfully!' });
+      setNewPassword('');
+      setConfirmPassword('');
+      await logAdminAction(adminUser?.email || 'admin', adminUser?.role || 'admin', 'UPDATE_PASSWORD', 'Settings', 'Admin changed their password');
+    } catch (err: any) {
+      console.error('[Update Password Error]:', err);
+      if (err.code === 'auth/requires-recent-login') {
+        setPasswordStatus({ type: 'error', msg: 'Please log out and log back in to change your password.' });
+      } else {
+        setPasswordStatus({ type: 'error', msg: err.message || 'Failed to update password.' });
+      }
+    }
   };
 
   return (
@@ -148,6 +189,54 @@ export default function AdminSettingsPage() {
           )}
         </div>
       </form>
+
+      {/* Security & Password Settings */}
+      <div className="bg-white p-6 rounded-3xl border border-[#0B192C]/10 shadow-sm space-y-4">
+        <h3 className="font-display text-base font-extrabold text-[#0E1726] border-b border-slate-100 pb-3 flex items-center gap-2">
+          <Lock className="w-4 h-4 text-[#9BC800]" />
+          <span>Security Settings</span>
+        </h3>
+
+        <form onSubmit={handleUpdatePassword} className="space-y-4 text-xs max-w-md">
+          <div className="space-y-1">
+            <label className="font-extrabold text-[#0E1726]">New Admin Password</label>
+            <input
+              type="password"
+              required
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="Min. 8 characters"
+              className="w-full p-3 rounded-xl bg-[#F4F6F9] border border-slate-300 font-medium text-[#0E1726]"
+            />
+          </div>
+
+          <div className="space-y-1">
+            <label className="font-extrabold text-[#0E1726]">Confirm New Password</label>
+            <input
+              type="password"
+              required
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              placeholder="Confirm password"
+              className="w-full p-3 rounded-xl bg-[#F4F6F9] border border-slate-300 font-medium text-[#0E1726]"
+            />
+          </div>
+
+          {passwordStatus.msg && (
+            <div className={`p-3 rounded-xl font-bold ${passwordStatus.type === 'error' ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-emerald-50 text-emerald-700 border border-emerald-200'}`}>
+              {passwordStatus.msg}
+            </div>
+          )}
+
+          <button
+            type="submit"
+            className="w-full sm:w-auto px-6 py-3 rounded-xl bg-[#9BC800] hover:bg-[#8AB300] text-[#0B192C] font-black uppercase text-xs tracking-wider flex items-center justify-center gap-2 shadow-md transition-colors"
+          >
+            <Lock className="w-4 h-4" />
+            <span>Update Password</span>
+          </button>
+        </form>
+      </div>
     </div>
   );
 }
