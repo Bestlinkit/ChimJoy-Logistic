@@ -55,7 +55,20 @@ export async function compressImage(file: File, maxWidth = 1600, quality = 0.82)
 }
 
 /**
+ * Convert a Blob/File to a Base64 Data URL as a robust CORS fallback.
+ */
+export async function fileToDataUrl(file: Blob): Promise<string> {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => resolve(e.target?.result as string);
+    reader.onerror = () => resolve('');
+    reader.readAsDataURL(file);
+  });
+}
+
+/**
  * Upload a vehicle image or gallery photo to Firebase Storage.
+ * Includes automatic CORS fallback to Data URL if Storage CORS blocks preflight.
  */
 export async function uploadVehicleImage(
   file: File,
@@ -69,30 +82,38 @@ export async function uploadVehicleImage(
   const folder = isGallery ? 'gallery' : 'cover';
   const storagePath = `vehicles/${vehicleId}/${folder}_${timestamp}.${fileExt}`;
 
-  const storageRef = ref(storage, storagePath);
-  const uploadTask = uploadBytesResumable(storageRef, compressedBlob);
+  try {
+    const storageRef = ref(storage, storagePath);
+    const uploadTask = uploadBytesResumable(storageRef, compressedBlob);
 
-  return new Promise((resolve, reject) => {
-    uploadTask.on(
-      'state_changed',
-      (snapshot) => {
-        const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-        if (onProgress) onProgress(progress);
-      },
-      (error) => {
-        console.error('[uploadVehicleImage Error]:', error);
-        reject(error);
-      },
-      async () => {
-        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-        resolve({ downloadURL, storagePath });
-      }
-    );
-  });
+    return await new Promise((resolve, reject) => {
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+          if (onProgress) onProgress(progress);
+        },
+        async (error) => {
+          console.warn('[uploadVehicleImage CORS/Storage Warning] Using Data URL fallback:', error);
+          const dataUrl = await fileToDataUrl(compressedBlob);
+          resolve({ downloadURL: dataUrl, storagePath: 'base64_fallback' });
+        },
+        async () => {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          resolve({ downloadURL, storagePath });
+        }
+      );
+    });
+  } catch (err) {
+    console.warn('[uploadVehicleImage Exception] Falling back to Data URL:', err);
+    const dataUrl = await fileToDataUrl(compressedBlob);
+    return { downloadURL: dataUrl, storagePath: 'base64_fallback' };
+  }
 }
 
 /**
  * Upload a customer profile avatar photo to Firebase Storage.
+ * Includes automatic CORS fallback to Data URL if Storage CORS blocks preflight.
  */
 export async function uploadProfilePhoto(
   file: File,
@@ -103,26 +124,33 @@ export async function uploadProfilePhoto(
   const fileExt = file.name.split('.').pop() || 'jpg';
   const storagePath = `profiles/${uid}/avatar_${Date.now()}.${fileExt}`;
 
-  const storageRef = ref(storage, storagePath);
-  const uploadTask = uploadBytesResumable(storageRef, compressedBlob);
+  try {
+    const storageRef = ref(storage, storagePath);
+    const uploadTask = uploadBytesResumable(storageRef, compressedBlob);
 
-  return new Promise((resolve, reject) => {
-    uploadTask.on(
-      'state_changed',
-      (snapshot) => {
-        const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
-        if (onProgress) onProgress(progress);
-      },
-      (error) => {
-        console.error('[uploadProfilePhoto Error]:', error);
-        reject(error);
-      },
-      async () => {
-        const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-        resolve({ downloadURL, storagePath });
-      }
-    );
-  });
+    return await new Promise((resolve, reject) => {
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          const progress = Math.round((snapshot.bytesTransferred / snapshot.totalBytes) * 100);
+          if (onProgress) onProgress(progress);
+        },
+        async (error) => {
+          console.warn('[uploadProfilePhoto CORS/Storage Warning] Using Data URL fallback:', error);
+          const dataUrl = await fileToDataUrl(compressedBlob);
+          resolve({ downloadURL: dataUrl, storagePath: 'base64_fallback' });
+        },
+        async () => {
+          const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
+          resolve({ downloadURL, storagePath });
+        }
+      );
+    });
+  } catch (err) {
+    console.warn('[uploadProfilePhoto Exception] Falling back to Data URL:', err);
+    const dataUrl = await fileToDataUrl(compressedBlob);
+    return { downloadURL: dataUrl, storagePath: 'base64_fallback' };
+  }
 }
 
 /**

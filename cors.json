@@ -1,0 +1,13 @@
+[
+  {
+    "origin": [
+      "https://chim-joy-logistic-82rt.vercel.app",
+      "https://www.chimjoylogistics.com.ng",
+      "https://chimjoylogistics.com.ng",
+      "http://localhost:3000"
+    ],
+    "method": ["GET", "PUT", "POST", "DELETE", "HEAD", "OPTIONS"],
+    "responseHeader": ["Content-Type", "x-goog-resumable", "Authorization"],
+    "maxAgeSeconds": 3600
+  }
+]
