@@ -64,11 +64,12 @@ export default function FleetPage() {
           <div className="flex flex-wrap items-center justify-center gap-2">
             {[
               { id: 'all', label: 'All Fleet Categories' },
-              { id: 'cat-suv', label: 'SUVs' },
-              { id: 'cat-exec', label: 'Executive Cars' },
-              { id: 'cat-lux', label: 'Luxury Vehicles' },
-              { id: 'cat-bus', label: 'Mini Bus' },
-              { id: 'cat-econ', label: 'Economy Cars' },
+              { id: 'Economy', label: 'Economy' },
+              { id: 'SUVs', label: 'SUVs' },
+              { id: 'Executive Cars', label: 'Executive Cars' },
+              { id: 'Luxury Vehicles', label: 'Luxury Vehicles' },
+              { id: 'Mini Bus / HiAce', label: 'Mini Bus / HiAce' },
+              { id: 'Logistics Vans', label: 'Logistics Vans' },
             ].map((cat) => (
               <button
                 key={cat.id}

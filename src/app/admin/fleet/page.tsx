@@ -236,6 +236,7 @@ export default function AdminFleetPage() {
                       onChange={(e) => setEditingVehicle({ ...editingVehicle, categoryName: e.target.value })}
                       className="w-full p-3 rounded-xl bg-[#F4F6F9] border border-slate-300 font-bold"
                     >
+                      <option value="Economy">Economy</option>
                       <option value="SUVs">SUVs</option>
                       <option value="Executive Cars">Executive Cars</option>
                       <option value="Luxury Vehicles">Luxury Vehicles</option>

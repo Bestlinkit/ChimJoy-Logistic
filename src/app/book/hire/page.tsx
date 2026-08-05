@@ -473,11 +473,12 @@ function CarHireContent() {
                   className="w-full text-sm font-medium text-[#0E1726] focus:outline-none bg-transparent appearance-none cursor-pointer"
                 >
                   <option value="">Any vehicle category (show all)</option>
+                  <option value="Economy">Economy Cars / Sedans (Corolla, Civic)</option>
                   <option value="SUVs">Executive SUVs (Prado, Land Cruiser)</option>
                   <option value="Executive Cars">Executive Sedans (Camry, Mercedes)</option>
                   <option value="Luxury Vehicles">Luxury Fleet (Lexus LX570)</option>
-                  <option value="Mini Bus">Executive Buses (Toyota HiAce 14-seater)</option>
-                  <option value="Economy Cars">Economy Sedans (Corolla)</option>
+                  <option value="Mini Bus / HiAce">Executive Buses (Toyota HiAce 14-seater)</option>
+                  <option value="Logistics Vans">Logistics Vans</option>
                 </select>
                 <ChevronDown className="w-4 h-4 text-[#475569] shrink-0" />
               </div>

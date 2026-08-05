@@ -402,11 +402,12 @@ function RideBookingContent() {
                       className="w-full text-sm font-medium text-[#0E1726] focus:outline-none bg-transparent appearance-none cursor-pointer"
                     >
                       <option value="">Any category (show all)</option>
+                      <option value="Economy">Economy</option>
                       <option value="SUVs">SUVs</option>
                       <option value="Executive Cars">Executive Cars</option>
                       <option value="Luxury Vehicles">Luxury Vehicles</option>
-                      <option value="Mini Bus">Mini Bus (Group)</option>
-                      <option value="Economy Cars">Economy Cars</option>
+                      <option value="Mini Bus / HiAce">Mini Bus / HiAce</option>
+                      <option value="Logistics Vans">Logistics Vans</option>
                     </select>
                     <ChevronDown className="w-4 h-4 text-[#475569] shrink-0" />
                   </div>
