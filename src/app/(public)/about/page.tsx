@@ -107,7 +107,7 @@ export default function AboutPage() {
       {/* ====================================================
           SECTION 1: HERO SECTION
           ==================================================== */}
-      <section className="relative min-h-[540px] lg:h-[75vh] w-full bg-[#0B192C] text-white flex flex-col justify-between overflow-hidden pt-32 sm:pt-36 pb-8">
+      <section className="relative w-full bg-[#0B192C] text-white flex flex-col justify-between overflow-hidden pt-24 sm:pt-28 pb-0">
         {/* Hero Background — Real fleet photo */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           <img
@@ -120,7 +120,7 @@ export default function AboutPage() {
         </div>
 
         {/* Hero Content Container */}
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 w-full my-auto py-4 sm:py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20 w-full py-8 sm:py-10">
           <motion.div
             initial={{ opacity: 0, y: 35 }}
             animate={{ opacity: 1, y: 0 }}
@@ -197,7 +197,7 @@ export default function AboutPage() {
       {/* ====================================================
           SECTION 2: WHO WE ARE
           ==================================================== */}
-      <section className="py-10 sm:py-12 bg-[#F4F6F9] text-[#0E1726] relative">
+      <section className="py-8 sm:py-10 bg-[#F4F6F9] text-[#0E1726] relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.div
             initial={{ opacity: 0, y: 35 }}
