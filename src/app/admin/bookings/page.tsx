@@ -13,6 +13,7 @@ import { logAdminAction } from '@/lib/firebase/services/admin-audit-service';
 import { useAdminAuth } from '@/context/AdminAuthContext';
 import { AdminBooking, BookingStatus, AdminDriver } from '@/types/admin';
 import { formatCurrency } from '@/lib/utils';
+import { DispatchOperationsPanel } from '@/components/admin/DispatchOperationsPanel';
 
 export default function AdminBookingsPage() {
   const { adminUser } = useAdminAuth();
@@ -226,87 +227,18 @@ export default function AdminBookingsPage() {
         </div>
       </div>
 
-      {/* UPDATE STATUS MODAL */}
-      <AnimatePresence>
-        {isModalOpen && selectedBooking && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <div className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              className="relative bg-white rounded-3xl p-6 border border-[#0B192C]/15 shadow-2xl w-full max-w-md space-y-4 z-10 text-[#0E1726]"
-            >
-              <div className="border-b border-slate-100 pb-3">
-                <span className="text-[10px] font-black uppercase tracking-wider text-[#003366]">
-                  DISPATCH CONTROL
-                </span>
-                <h3 className="font-display text-xl font-black text-[#0E1726]">
-                  Update Booking #{selectedBooking.referenceCode}
-                </h3>
-              </div>
-
-              <form onSubmit={handleUpdate} className="space-y-4 text-xs">
-                <div className="space-y-1.5">
-                  <label className="font-extrabold uppercase tracking-wider text-[#0E1726] text-[10px]">
-                    Lifecycle Status
-                  </label>
-                  <select
-                    value={newStatus}
-                    onChange={(e) => setNewStatus(e.target.value as BookingStatus)}
-                    className="w-full p-3 rounded-xl bg-[#F4F6F9] border border-slate-300 font-bold text-[#0E1726] focus:outline-none cursor-pointer"
-                  >
-                    <option value="Pending">Pending</option>
-                    <option value="Confirmed">Confirmed</option>
-                    <option value="Driver Assigned">Driver Assigned</option>
-                    <option value="Driver En Route">Driver En Route</option>
-                    <option value="Passenger Picked Up">Passenger Picked Up</option>
-                    <option value="Trip Started">Trip Started</option>
-                    <option value="Completed">Completed</option>
-                    <option value="Cancelled">Cancelled</option>
-                    <option value="No Show">No Show</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="font-extrabold uppercase tracking-wider text-[#0E1726] text-[10px]">
-                    Assign Chauffeur Driver
-                  </label>
-                  <select
-                    value={selectedDriverId}
-                    onChange={(e) => setSelectedDriverId(e.target.value)}
-                    className="w-full p-3 rounded-xl bg-[#F4F6F9] border border-slate-300 font-bold text-[#0E1726] focus:outline-none cursor-pointer"
-                  >
-                    <option value="">Unassigned</option>
-                    {drivers.map((d) => (
-                      <option key={d.id} value={d.id}>
-                        {d.name} ({d.phone}) — {d.status}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="pt-2 flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="w-1/2 py-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#0E1726] font-extrabold cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="w-1/2 py-3 rounded-xl bg-[#0B192C] hover:bg-[#003366] text-white font-black cursor-pointer shadow-md disabled:opacity-50"
-                  >
-                    {isSubmitting ? 'Saving...' : 'Save Dispatch Changes'}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {/* ENTERPRISE DISPATCH OPERATIONS PANEL */}
+      {isModalOpen && selectedBooking && (
+        <DispatchOperationsPanel
+          booking={selectedBooking}
+          isOpen={isModalOpen}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedBooking(null);
+          }}
+          adminName={adminUser?.name || 'Administrator'}
+        />
+      )}
     </div>
   );
 }

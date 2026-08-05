@@ -85,7 +85,7 @@ export default function AdminFleetPage() {
           `Saved vehicle ${editingVehicle.name} (${docId})`
         ).catch(() => {});
       }
-      alert('✓ Vehicle saved successfully to Cloud Firestore!');
+      alert('✓ Vehicle saved successfully!');
       setIsModalOpen(false);
       setEditingVehicle(null);
     } catch (err: any) {

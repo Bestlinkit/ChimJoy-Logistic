@@ -95,11 +95,17 @@ export default function FleetPage() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.45, delay: idx * 0.08 }}
                 whileHover={{ y: -5, scale: 1.01 }}
-                className="bg-white rounded-3xl overflow-hidden border border-[#0B192C]/10 hover:border-[#9BC800] hover:shadow-[0_0_25px_rgba(155,200,0,0.3)] transition-all duration-300 flex flex-col justify-between"
               >
                 <div>
                   <div className="relative h-56 w-full overflow-hidden bg-[#0B192C]">
-                    <img src={vehicle.image} alt={vehicle.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                    <img
+                      src={vehicle.image || vehicle.coverImage || '/images/suv_prado_2.jpg'}
+                      alt={vehicle.name}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/images/suv_prado_2.jpg';
+                      }}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
                     <span className="absolute top-4 left-4 bg-[#0B192C] text-[#9BC800] text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full">
                       {vehicle.categoryName}
                     </span>

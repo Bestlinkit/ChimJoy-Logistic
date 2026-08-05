@@ -17,12 +17,88 @@ export type BookingStatus =
   | 'Pending'
   | 'Confirmed'
   | 'Driver Assigned'
+  | 'Vehicle Ready'
   | 'Driver En Route'
+  | 'Driver Arrived'
   | 'Passenger Picked Up'
-  | 'Trip Started'
-  | 'Completed'
+  | 'Trip In Progress'
+  | 'Trip Completed'
+  | 'Invoice Sent'
+  | 'Closed'
   | 'Cancelled'
   | 'No Show';
+
+export interface DispatchHistoryRecord {
+  status: BookingStatus;
+  timestamp: string;
+  adminName: string;
+  notes?: string;
+}
+
+export interface DispatchSnapshot {
+  vehicle: {
+    name: string;
+    category: string;
+    registrationNumber: string;
+    color: string;
+    year: string;
+    condition: string;
+    features: string[];
+    maxPassengers: number;
+    dailyRate: number;
+    coverImage: string;
+    galleryImages: string[];
+    youtubeVideo?: string;
+    internalNotes?: string;
+  };
+  driver: {
+    name: string;
+    phone: string;
+    whatsapp: string;
+    email: string;
+    licenseNumber: string;
+    driverId?: string;
+    experience?: string;
+    languages?: string[];
+    uniformStatus?: string;
+    emergencyContact?: string;
+    photo: string;
+    notes?: string;
+  };
+  pickup: {
+    pickupDate: string;
+    pickupTime: string;
+    estimatedArrival?: string;
+    terminal?: string;
+    gate?: string;
+    flightNumber?: string;
+    hotelName?: string;
+    meetingPoint: string;
+    contactMethod: 'Call' | 'SMS' | 'WhatsApp';
+    signboardName?: string;
+    instructions?: string;
+  };
+  pricing: {
+    baseFare: number;
+    distanceCharge: number;
+    waitingCharge: number;
+    airportFee: number;
+    nightCharge: number;
+    discount: number;
+    vat: number;
+    total: number;
+    paymentMethod: string;
+    paymentStatus: 'Pending' | 'Paid' | 'Refunded' | 'Cancelled';
+  };
+  status: BookingStatus;
+  history: DispatchHistoryRecord[];
+  internalNotes?: {
+    dispatcherNotes?: string;
+    driverNotes?: string;
+    vipInstructions?: string;
+    securityNotes?: string;
+  };
+}
 
 export interface AdminBooking {
   id: string;
@@ -51,6 +127,7 @@ export interface AdminBooking {
   specialRequests?: string;
   flightNumber?: string;
   notes?: string;
+  dispatch?: DispatchSnapshot;
   createdAt: string;
   updatedAt?: string;
 }

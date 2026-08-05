@@ -18,7 +18,7 @@ export default function AdminReportsPage() {
     .filter((b) => b.status !== 'Cancelled')
     .reduce((sum, b) => sum + (b.totalAmount || b.estimatedPrice || 0), 0);
 
-  const completedCount = bookings.filter((b) => b.status === 'Completed').length;
+  const completedCount = bookings.filter((b) => b.status === 'Trip Completed' || b.status === 'Closed').length;
   const pendingCount = bookings.filter((b) => b.status === 'Pending').length;
 
   const handleExportCSV = () => {

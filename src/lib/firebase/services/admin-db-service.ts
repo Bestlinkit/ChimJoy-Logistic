@@ -101,6 +101,25 @@ export async function assignDriverToBookingInDb(
   });
 }
 
+export async function saveBookingDispatchInDb(
+  bookingId: string,
+  dispatchSnapshot: any,
+  newStatus: BookingStatus
+): Promise<void> {
+  const ref = doc(db, 'bookingRequests', bookingId);
+  await updateDoc(ref, {
+    dispatch: dispatchSnapshot,
+    status: newStatus,
+    vehicleName: dispatchSnapshot?.vehicle?.name || 'Assigned Vehicle',
+    vehicleImage: dispatchSnapshot?.vehicle?.coverImage || '',
+    driverName: dispatchSnapshot?.driver?.name || 'Assigned Chauffeur',
+    driverPhone: dispatchSnapshot?.driver?.phone || '',
+    estimatedPrice: dispatchSnapshot?.pricing?.total || 0,
+    totalAmount: dispatchSnapshot?.pricing?.total || 0,
+    updatedAt: new Date().toISOString(),
+  });
+}
+
 export async function assignVehicleAndDriverInDb(
   bookingId: string,
   vehicleId: string,

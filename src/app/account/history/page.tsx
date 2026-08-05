@@ -22,7 +22,7 @@ export default function TripHistoryPage() {
     return () => unsub();
   }, [user?.email]);
 
-  const completedTrips = bookings.filter((b) => b.status === 'Completed' || b.status === 'Confirmed');
+  const completedTrips = bookings.filter((b) => b.status === 'Trip Completed' || b.status === 'Confirmed' || b.status === 'Closed');
   const totalSpent = bookings.reduce((sum, b) => sum + (b.estimatedPrice || 0), 0);
 
   return (

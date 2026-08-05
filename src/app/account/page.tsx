@@ -18,7 +18,7 @@ export default function CustomerAccountDashboard() {
     return () => unsub();
   }, [user]);
 
-  const upcomingBookings = bookings.filter((b) => b.status !== 'Completed' && b.status !== 'Cancelled');
+  const upcomingBookings = bookings.filter((b) => b.status !== 'Trip Completed' && b.status !== 'Closed' && b.status !== 'Cancelled');
   const totalSpent = bookings.filter((b) => b.status !== 'Cancelled').reduce((sum, b) => sum + (b.totalAmount || b.estimatedPrice || 0), 0);
 
   return (

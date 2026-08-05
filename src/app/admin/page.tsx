@@ -149,9 +149,9 @@ export default function AdminDashboardPage() {
         return 'bg-purple-500/15 text-purple-600 border-purple-500/30';
       case 'Passenger Picked Up':
         return 'bg-teal-500/15 text-teal-600 border-teal-500/30';
-      case 'Trip Started':
+      case 'Trip In Progress':
         return 'bg-[#003366]/15 text-[#003366] border-[#003366]/30';
-      case 'Completed':
+      case 'Trip Completed':
         return 'bg-emerald-500/15 text-emerald-700 border-emerald-500/30';
       case 'Cancelled':
         return 'bg-red-500/15 text-red-600 border-red-500/30';
